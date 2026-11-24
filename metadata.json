@@ -1,0 +1,6 @@
+{
+  "name": "NusaBursa",
+  "description": "Platform analisis keuangan perusahaan, likuiditas, inflow/outflow saham Indonesia (BEI/IDX), grafik sektor real-time, lampu indikator support/resisten, screening cerdas, serta riset mendalam geopolitik dan komoditas dunia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

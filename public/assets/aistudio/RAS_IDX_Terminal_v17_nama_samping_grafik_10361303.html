@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAS.IDX Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060a0f;--panel:#0e141c;--panel-2:#131b25;--line:#1d2833;--text:#eaf1f7;--muted:#8d9aa8;--green:#00e08a;--blue:#3d8bff;--red:#ff5a68;--font-display:"Space Grotesk",system-ui,sans-serif;--font-body:"Inter",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overscroll-behavior:none}
+.screen{max-width:480px;margin:0 auto;min-height:100vh;position:relative;overflow-x:clip}
+.hidden{display:none!important}
+button{font-family:var(--font-body)}
+#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:32px;background:radial-gradient(circle at 18% 12%,rgba(0,224,138,.16),transparent 42%),radial-gradient(circle at 88% 88%,rgba(61,139,255,.20),transparent 48%),var(--bg)}
+.brand-mark{width:112px;height:112px;border-radius:32px;display:grid;place-items:center;background:linear-gradient(145deg,#00e08a,#0a8f5c 45%,#1e5cff);box-shadow:0 24px 70px rgba(0,224,138,.22);animation:rise .9s cubic-bezier(.2,.8,.2,1)}
+.brand-mark svg{width:66px;height:66px}
+@keyframes rise{from{opacity:0;transform:translateY(22px) scale(.86)}to{opacity:1;transform:none}}
+.splash-title{margin-top:30px;font-family:var(--font-display);font-size:42px;line-height:.98;font-weight:700;letter-spacing:-2.2px}
+.splash-title span{display:block;background:linear-gradient(90deg,#00e08a,#3d8bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.splash-sub{margin-top:14px;color:var(--muted);font-size:14px;max-width:310px}
+.loader{margin-top:36px;width:190px;height:4px;border-radius:99px;background:#18222d;overflow:hidden}
+.loader div{height:100%;width:38%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--blue));animation:load 1.5s infinite}
+@keyframes load{from{transform:translateX(-110%)}to{transform:translateX(330%)}}
+.splash-note{position:absolute;bottom:30px;color:#5c6b79;font-size:11px;letter-spacing:.5px;text-transform:uppercase}
+#onboarding{display:flex;flex-direction:column;min-height:100vh;background:var(--bg);padding:24px;touch-action:pan-y}
+.ob-top{display:flex;justify-content:flex-end}
+.skip{border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
+.slider{flex:1;position:relative;overflow:hidden;border-radius:30px}
+.track{display:flex;width:300%;height:100%;transition:transform .38s cubic-bezier(.25,.8,.25,1)}
+.slide{width:33.3333%;height:100%;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:16px 6px;user-select:none}
+.ob-art{height:auto;min-height:250px;border-radius:30px;background:linear-gradient(160deg,#101823,#0a1017);border:1px solid var(--line);display:grid;place-items:center;margin-bottom:30px;position:relative;overflow:hidden;padding:18px}
+.ob-art::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(0,224,138,.18),transparent 65%)}
+.ob-title{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1.12}
+.ob-desc{margin-top:13px;color:var(--muted);font-size:14px;line-height:1.6;max-width:320px;margin-inline:auto}
+.dots{display:flex;justify-content:center;gap:7px;margin:24px 0}
+.dot{width:8px;height:8px;border-radius:99px;background:#243140;transition:.3s}
+.dot.active{width:26px;background:var(--green)}
+.ob-actions{display:flex;gap:12px;padding-bottom:10px}
+.ghost-btn{flex:1;border:1px solid var(--line);background:transparent;color:var(--text);padding:15px;border-radius:16px;font-weight:700;cursor:pointer}
+.primary-btn{flex:1;border:none;padding:15px;border-radius:16px;background:linear-gradient(135deg,#00e08a,#00b86f);color:#03130b;font-weight:800;cursor:pointer}
+.swipe-hint{margin-top:8px;color:#5f6d7a;font-size:11px;text-align:center}
+#home,#news,#riset,#screener,#compare{display:flex;flex-direction:column;min-height:100vh;background:var(--bg);padding-bottom:86px}
+.header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(6,10,15,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#00e08a,#0a8f5c 45%,#1e5cff)}
+.logo svg{width:24px;height:24px}
+.brand-title{font-family:var(--font-display);font-size:17px;font-weight:700}
+.brand-subtitle{font-size:10.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.icon-btn{width:38px;height:38px;border:none;border-radius:12px;background:var(--panel);color:var(--text);font-size:16px;cursor:pointer}
+.content{padding:16px;display:flex;flex-direction:column;gap:16px}
+.greeting h1{font-family:var(--font-display);font-size:23px}
+.greeting p{font-size:13px;color:var(--muted);margin-top:5px}
+.ihsg-card{background:linear-gradient(145deg,#101a24,#0b1219);border:1px solid #243140;border-radius:22px;padding:18px}
+.ihsg-label{font-size:11px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.ihsg-value{font-family:var(--font-display);font-size:34px;font-weight:700;margin-top:8px}
+.ihsg-change{display:inline-flex;margin-top:7px;background:rgba(0,224,138,.12);color:var(--green);padding:6px 10px;border-radius:99px;font-size:12px;font-weight:800}
+.ihsg-meta{margin-top:14px;display:flex;gap:16px;color:var(--muted);font-size:11px}
+.ihsg-meta strong{color:var(--text);display:block;font-size:13px}
+.chart-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.chart-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.chart-head h2{font-family:var(--font-display);font-size:16px}
+.chart-head span{font-size:11px;color:var(--muted)}
+.tv-container{height:480px;width:100%}
+.tv-container .tradingview-widget-container{height:100%;width:100%}
+.tradingview-widget-container__widget{height:100%;width:100%}
+.tv-note{padding:10px 16px 14px;color:#5f6d7a;font-size:10.5px;text-align:center}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-head h2{font-family:var(--font-display);font-size:16px}
+.section-head button{border:none;background:transparent;color:var(--green);font-size:12px;font-weight:700;cursor:pointer}
+.index-list{display:flex;flex-direction:column;gap:9px}
+.index-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px 14px}
+.index-badge{width:44px;height:44px;border-radius:13px;background:var(--panel-2);display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:11px;color:var(--green)}
+.index-info{flex:1;text-align:left}
+.index-info strong{font-family:var(--font-display);display:block}
+.index-info span{font-size:11.5px;color:var(--muted)}
+.index-price{text-align:right}
+.index-price strong{font-family:var(--font-display);display:block}
+.index-price span{font-size:12px;font-weight:700}
+.research-card{background:linear-gradient(145deg,#131d28,#0d141d);border:1px solid #243140;border-radius:20px;padding:17px}
+.research-head{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700}
+.research-card p{margin-top:8px;font-size:13px;color:var(--muted)}
+.primary-btn.full{width:100%;margin-top:15px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:rgba(14,20,28,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:8px 4px;z-index:30}
+.nav-item{flex:1;border:none;background:transparent;color:#6d7c8b;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0}
+.nav-item span{font-size:18px}
+.nav-item.active{color:var(--green)}
+#news .news-hero{padding:18px 16px 6px}
+#news .news-hero h1{font-family:var(--font-display);font-size:24px}
+#news .news-hero p{color:var(--muted);font-size:13px;margin-top:5px}
+.news-filters{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;scrollbar-width:none}
+.news-filters::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:9px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer}
+.filter-chip.active{background:rgba(0,224,138,.12);border-color:rgba(0,224,138,.45);color:var(--green)}
+.news-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.news-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.news-image{height:130px;background:linear-gradient(135deg,#16202b,#0d141d);display:grid;place-items:center;font-size:38px;position:relative}
+.news-tag{position:absolute;top:10px;left:10px;background:rgba(0,224,138,.14);color:var(--green);font-size:10px;font-weight:800;padding:5px 9px;border-radius:99px}
+.news-body{padding:14px}
+.news-meta{display:flex;gap:8px;color:var(--muted);font-size:11px;margin-bottom:7px}
+.news-title{font-family:var(--font-display);font-size:16px;font-weight:700;line-height:1.3}
+.news-desc{margin-top:7px;color:var(--muted);font-size:12.5px;line-height:1.55}
+#riset .riset-hero{padding:18px 16px 6px}
+#riset .riset-hero h1{font-family:var(--font-display);font-size:24px}
+#riset .riset-hero p{color:var(--muted);font-size:13px;margin-top:5px}
+.criteria{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 16px}
+.criterion{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:12px}
+.criterion small{display:block;color:var(--muted);font-size:10.5px}
+.criterion strong{display:block;font-family:var(--font-display);font-size:13px;margin-top:5px}
+.criterion span{display:block;color:var(--green);font-size:11px;font-weight:700;margin-top:4px}
+.results{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.result-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px}
+.result-top{display:flex;align-items:center;gap:11px}
+.result-badge{width:44px;height:44px;border-radius:13px;background:var(--panel-2);display:grid;place-items:center;font-family:var(--font-display);font-weight:800}
+.result-info{flex:1}
+.result-info strong{font-family:var(--font-display);display:block}
+.result-info span{font-size:11.5px;color:var(--muted)}
+.score{background:rgba(0,224,138,.12);color:var(--green);font-weight:800;font-size:12px;padding:6px 9px;border-radius:99px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}
+.metric{background:#0d141d;border:1px solid #1d2833;border-radius:12px;padding:9px;text-align:center}
+.metric small{display:block;color:var(--muted);font-size:9.5px}
+.metric strong{display:block;font-family:var(--font-display);font-size:12.5px;margin-top:3px}
+.trade-plan{margin-top:13px;background:linear-gradient(145deg,#101a24,#0b1219);border:1px solid #243140;border-radius:15px;padding:12px}
+.trade-row{display:flex;justify-content:space-between;font-size:12px;margin-top:7px}
+.trade-row span:first-child{color:var(--muted)}
+.buy{color:var(--green);font-weight:800}
+.sell{color:var(--red);font-weight:800}
+.neutral{color:var(--muted);font-weight:700}
+#screener .screen-hero{padding:18px 16px 6px}
+#screener .screen-hero h1{font-family:var(--font-display);font-size:24px}
+#screener .screen-hero p{color:var(--muted);font-size:13px;margin-top:5px}
+.screen-filters{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;scrollbar-width:none}
+.screen-filters::-webkit-scrollbar{display:none}
+.screen-chip{white-space:nowrap;border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:9px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer}
+.screen-chip.active{background:rgba(0,224,138,.12);border-color:rgba(0,224,138,.45);color:var(--green)}
+.screen-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.screen-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px}
+.screen-top{display:flex;align-items:center;gap:11px}
+.screen-badge{width:44px;height:44px;border-radius:13px;background:var(--panel-2);display:grid;place-items:center;font-family:var(--font-display);font-weight:800}
+.screen-info{flex:1}
+.screen-info strong{font-family:var(--font-display);display:block}
+.screen-info span{font-size:11.5px;color:var(--muted)}
+.inflow{background:rgba(0,224,138,.12);color:var(--green);font-weight:800;font-size:11.5px;padding:6px 9px;border-radius:99px}
+.screen-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}
+.screen-metric{background:#0d141d;border:1px solid #1d2833;border-radius:12px;padding:9px;text-align:center}
+.screen-metric small{display:block;color:var(--muted);font-size:9.5px}
+.screen-metric strong{display:block;font-family:var(--font-display);font-size:12.5px;margin-top:3px}
+.screen-note{padding:14px 16px 4px;color:#5f6d7a;font-size:10.5px;text-align:center}
+#compare .compare-hero{padding:18px 16px 6px}
+#compare .compare-hero h1{font-family:var(--font-display);font-size:24px}
+#compare .compare-hero p{color:var(--muted);font-size:13px;margin-top:5px}
+.sector-filters{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;scrollbar-width:none}
+.sector-filters::-webkit-scrollbar{display:none}
+.sector-chip{white-space:nowrap;border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:9px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer}
+.sector-chip.active{background:rgba(0,224,138,.12);border-color:rgba(0,224,138,.45);color:var(--green)}
+.compare-charts{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.compare-chart{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px}
+.compare-chart h3{font-family:var(--font-display);font-size:15px}
+.compare-chart p{color:var(--muted);font-size:11.5px;margin-top:4px}
+.chart-wrap{display:flex;gap:10px;margin-top:14px;align-items:center}
+.line-chart{flex:1;height:180px;display:block;background:#0b1219;border:1px solid #1d2833;border-radius:14px;padding:10px}
+.line-path{fill:none;stroke:#00e08a;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:drawLine 1.4s ease forwards .2s}
+@keyframes drawLine{to{stroke-dashoffset:0}}
+.line-dot{fill:#00e08a}
+.line-label{font-family:var(--font-display);font-size:11px;font-weight:800;fill:#eaf1f7}
+.line-value{font-size:9.5px;fill:#8d9aa8}
+.compare-table{padding:0 16px}
+.compare-row{display:grid;grid-template-columns:64px 1fr 84px 84px;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px}
+.compare-row.head{background:transparent;border:none;padding:0 12px;color:var(--muted);font-size:10px;text-transform:uppercase}
+.compare-ticker{font-family:var(--font-display);font-weight:800}
+.compare-name{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compare-val{text-align:right;font-family:var(--font-display);font-weight:700;font-size:12.5px}
+.best{color:var(--green)}
+.compare-note{padding:14px 16px 4px;color:#5f6d7a;font-size:10.5px;text-align:center}
+/* ===== Perbaikan: kelas yang sebelumnya belum punya style ===== */
+.up{color:var(--green)}
+.down{color:var(--red)}
+.ihsg-top{display:flex;flex-direction:column}
+.mini-dashboard,.search-art,.riset-art{position:relative;z-index:1;width:100%;max-width:300px;display:flex;flex-direction:column;gap:11px;text-align:left}
+.mini-header{display:flex;align-items:center;gap:6px}
+.mini-dot{width:8px;height:8px;border-radius:50%;background:#2a3846}
+.mini-pill{margin-left:auto;font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--green);background:rgba(0,224,138,.12);padding:4px 9px;border-radius:99px}
+.mini-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini-stat{background:#0d141d;border:1px solid var(--line);border-radius:12px;padding:9px 10px}
+.mini-stat small{display:block;color:var(--muted);font-size:10px}
+.mini-stat strong{display:block;font-family:var(--font-display);font-size:16px;margin-top:2px}
+.mini-stat em,.mini-stock em,.search-result em{font-style:normal;font-size:10.5px;font-weight:800}
+.mini-chart{width:100%;height:96px;display:block}
+.chart-line{stroke-dasharray:600;stroke-dashoffset:600;animation:drawLine 1.6s ease forwards .3s}
+.mini-stocks{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.mini-stock{background:#0d141d;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:2px}
+.mini-stock b{font-family:var(--font-display);font-size:11.5px}
+.mini-stock span{font-size:11px;color:var(--muted)}
+.search-field{background:#0d141d;border:1px solid var(--line);border-radius:14px;padding:13px 14px;color:var(--muted);font-size:13px}
+.search-result{display:flex;align-items:center;gap:11px;background:#0d141d;border:1px solid #243140;border-radius:14px;padding:12px}
+.search-result .badge{width:40px;height:40px;border-radius:12px;background:var(--panel-2);display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:12px;color:var(--green)}
+.search-result>div:nth-child(2){flex:1}
+.search-result strong{display:block;font-family:var(--font-display);font-size:13px}
+.search-result span{font-size:11px;color:var(--muted)}
+.search-result .price{text-align:right}
+.search-result .price span{font-size:11px;font-weight:800}
+.search-tags{display:flex;gap:7px;flex-wrap:wrap}
+.tag{border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:11px;font-weight:700;padding:6px 11px;border-radius:99px}
+.riset-art .riset-head{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:14px;margin-bottom:2px}
+.riset-row{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600}
+.riset-bar{height:8px;border-radius:99px;background:#18222d;overflow:hidden}
+.riset-bar div{height:100%;width:var(--w);border-radius:99px;background:linear-gradient(90deg,#00e08a,#3d8bff)}
+/* grafik banding: nama di samping, garis mengikuti posisi nama */
+.chart-wrap{display:flex;gap:8px;margin-top:14px;align-items:stretch}
+.chart-names{position:relative;width:46px;height:180px;flex:none}
+.chart-names span{position:absolute;left:0;transform:translateY(-50%);font-family:var(--font-display);font-weight:800;font-size:11px}
+.line-chart{flex:1;min-width:0;height:180px;padding:0}
+.line-dot{stroke:#0b1219;stroke-width:2}
+.zero-line{stroke:#2a3846;stroke-width:1;stroke-dasharray:3 4}
+/* ===== Banding gaya aplikasi saham ===== */
+.cmp-chips{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px 4px}
+.cmp-chip{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 8px 7px 11px;font-family:var(--font-display);font-weight:800;font-size:12.5px}
+.cmp-chip i{width:9px;height:9px;border-radius:50%;display:block}
+.cmp-chip button{width:20px;height:20px;border:none;border-radius:50%;background:#1d2833;color:var(--muted);font-size:11px;cursor:pointer;line-height:1}
+.cmp-add{border:1px dashed rgba(0,224,138,.5);background:rgba(0,224,138,.08);color:var(--green);border-radius:99px;padding:8px 14px;font-weight:800;font-size:12.5px;cursor:pointer}
+.cmp-add:disabled{opacity:.4;cursor:not-allowed}
+.cmp-card{margin:12px 16px 0;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:15px}
+.cmp-card-head h3{font-family:var(--font-display);font-size:15px}
+.cmp-card-head p{color:var(--muted);font-size:11.5px;margin-top:3px}
+.cmp-periods{display:flex;gap:6px;margin-top:12px;background:#0b1219;border:1px solid var(--line);border-radius:12px;padding:4px}
+.cmp-periods button{flex:1;border:none;background:transparent;color:var(--muted);font-weight:800;font-size:12px;padding:8px 0;border-radius:9px;cursor:pointer}
+.cmp-periods button.active{background:rgba(0,224,138,.14);color:var(--green)}
+.cmp-chart-wrap{position:relative;margin-top:12px}
+#cmpChart{width:100%;height:220px;display:block;touch-action:pan-y;user-select:none}
+.cmp-tip{position:absolute;top:6px;background:rgba(6,10,15,.94);border:1px solid #2a3846;border-radius:12px;padding:8px 10px;font-size:11px;pointer-events:none;min-width:112px;z-index:3}
+.cmp-tip b{display:block;color:var(--muted);font-weight:600;margin-bottom:5px;font-size:10.5px}
+.cmp-tip div{display:flex;align-items:center;gap:6px;margin-top:3px;font-weight:700}
+.cmp-tip i{width:7px;height:7px;border-radius:50%;display:block}
+.cmp-tip span{margin-left:auto;padding-left:10px;font-family:var(--font-display)}
+.cmp-legend{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.cmp-leg-row{display:flex;align-items:center;gap:10px;background:#0d141d;border:1px solid var(--line);border-radius:13px;padding:10px 12px}
+.cmp-leg-row i{width:4px;height:28px;border-radius:99px;display:block}
+.cmp-leg-row strong{font-family:var(--font-display);display:block;font-size:13px}
+.cmp-leg-row small{color:var(--muted);font-size:11px}
+.cmp-leg-row .ret{margin-left:auto;font-family:var(--font-display);font-weight:800;font-size:14px}
+.cmp-grid{display:grid;grid-template-columns:92px repeat(var(--n),1fr);gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid #18222d;font-size:12px}
+.cmp-grid:last-child{border-bottom:none}
+.cmp-grid>span:first-child{color:var(--muted);font-size:11px}
+.cmp-grid .v{text-align:center;font-family:var(--font-display);font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-grid .v.best{color:var(--green);background:rgba(0,224,138,.10);border-radius:8px;padding:5px 2px}
+.cmp-grid.head .v{font-weight:800;font-size:12px}
+.cmp-group{margin:12px 0 2px;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#5f6d7a;font-weight:800}
+.cmp-sheet{position:fixed;inset:0;z-index:60}
+.cmp-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.cmp-panel{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:16px}
+.cmp-panel-head{display:flex;align-items:center;justify-content:space-between;font-family:var(--font-display);font-size:16px}
+.cmp-search{margin-top:12px;width:100%;background:#0b1219;border:1px solid var(--line);border-radius:14px;padding:13px 14px;color:var(--text);font-size:16px;font-family:var(--font-body);outline:none}
+.cmp-search:focus{border-color:rgba(0,224,138,.5)}
+.cmp-hint{min-height:18px;margin-top:8px;color:var(--muted);font-size:11.5px}
+.cmp-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:10px}
+.cmp-item{display:flex;align-items:center;gap:11px;background:#0d141d;border:1px solid var(--line);border-radius:14px;padding:11px 12px;cursor:pointer;text-align:left;color:var(--text);width:100%}
+.cmp-item.sel{border-color:rgba(0,224,138,.5);background:rgba(0,224,138,.07)}
+.cmp-item .bd{width:40px;height:40px;border-radius:12px;background:var(--panel-2);display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:12px}
+.cmp-item .mid{flex:1}
+.cmp-item .mid strong{display:block;font-family:var(--font-display);font-size:13px}
+.cmp-item .mid span{color:var(--muted);font-size:11px}
+.cmp-item .rt{text-align:right;font-size:11.5px;font-weight:800;color:var(--muted)}
+.cmp-item.sel .rt{color:var(--green)}
+/* ===== Screener gaya aplikasi saham ===== */
+.scr-tools{display:flex;gap:8px;padding:0 16px}
+.scr-search{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--text);font-size:16px;font-family:var(--font-body);outline:none}
+.scr-search:focus{border-color:rgba(0,224,138,.5)}
+.scr-filter-btn{border:1px solid rgba(0,224,138,.45);background:rgba(0,224,138,.10);color:var(--green);border-radius:14px;padding:0 14px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;display:flex;align-items:center}
+.scr-filter-btn b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:99px;background:var(--green);color:#03130b;font-size:10.5px;margin-left:6px;padding:0 5px}
+.scr-active{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 0}
+.scr-tag{display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:99px;padding:5px 6px 5px 10px;font-size:11px;font-weight:700}
+.scr-tag button{width:18px;height:18px;border:none;border-radius:50%;background:#1d2833;color:var(--muted);font-size:10px;cursor:pointer;line-height:1}
+.scr-tag.clear{border-style:dashed;color:var(--muted);cursor:pointer;padding:5px 10px;background:transparent}
+.scr-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px 10px;font-size:12px;color:var(--muted)}
+.scr-bar b{color:var(--text);font-family:var(--font-display)}
+.scr-sort{display:flex;gap:6px}
+.scr-sort select{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 8px;font-size:12px;font-family:var(--font-body);outline:none;max-width:150px}
+.scr-sort button{width:32px;border:1px solid var(--line);background:var(--panel);color:var(--green);border-radius:10px;font-weight:800;cursor:pointer}
+.scr-row{cursor:pointer}
+.scr-price{text-align:right}
+.scr-price strong{display:block;font-family:var(--font-display);font-size:13.5px}
+.scr-price span{font-size:11.5px;font-weight:800}
+.scr-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.scr-m{background:#0d141d;border:1px solid #1d2833;border-radius:11px;padding:8px 4px;text-align:center}
+.scr-m small{display:block;color:var(--muted);font-size:9.5px}
+.scr-m strong{display:block;font-family:var(--font-display);font-size:12px;margin-top:3px;white-space:nowrap}
+.scr-m.hl{border-color:rgba(0,224,138,.5);background:rgba(0,224,138,.07)}
+.scr-detail{margin-top:12px;padding-top:12px;border-top:1px solid #18222d}
+.scr-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}
+.scr-detail-grid div{display:flex;justify-content:space-between;gap:6px;font-size:12px}
+.scr-detail-grid span{color:var(--muted)}
+.scr-detail-grid b{font-family:var(--font-display);font-size:12px}
+.scr-actions{display:flex;gap:8px;margin-top:13px}
+.scr-actions button{flex:1;padding:11px;border-radius:12px;font-weight:800;font-size:12.5px;cursor:pointer}
+.scr-btn-a{border:1px solid rgba(0,224,138,.45);background:rgba(0,224,138,.10);color:var(--green)}
+.scr-btn-b{border:1px solid var(--line);background:transparent;color:var(--text)}
+.scr-empty{padding:34px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+.scr-empty button{margin-top:12px}
+.cmp-panel.tall{height:84vh}
+.scr-body{flex:1;min-height:0;overflow-y:auto;margin-top:6px;padding-bottom:6px}
+.scr-sec{margin-top:16px}
+.scr-sec h4{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#5f6d7a;font-weight:800;margin-bottom:8px}
+.scr-chips{display:flex;gap:7px;flex-wrap:wrap}
+.scr-chip{border:1px solid var(--line);background:#0d141d;color:var(--muted);border-radius:99px;padding:8px 13px;font-size:12px;font-weight:700;cursor:pointer}
+.scr-chip.on{background:rgba(0,224,138,.12);border-color:rgba(0,224,138,.45);color:var(--green)}
+.scr-rng{display:grid;grid-template-columns:1fr 80px 10px 80px;gap:8px;align-items:center;margin-top:8px;font-size:12.5px}
+.scr-rng label{color:var(--text);font-weight:600}
+.scr-rng input{width:100%;background:#0b1219;border:1px solid var(--line);border-radius:10px;padding:9px 6px;color:var(--text);font-size:14px;font-family:var(--font-body);outline:none;text-align:center}
+.scr-rng input:focus{border-color:rgba(0,224,138,.5)}
+.scr-rng span{color:var(--muted);text-align:center}
+.scr-foot{display:flex;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.scr-foot .ghost-btn{flex:none;padding:14px 18px}
+.scr-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:#16202b;border:1px solid #2a3846;color:var(--text);padding:10px 16px;border-radius:99px;font-size:12.5px;font-weight:700;z-index:50;max-width:90%;text-align:center}
+/* ===== Riset Geopolitik ===== */
+.geo-asof{padding:0 16px;color:var(--muted);font-size:11.5px;margin-top:2px}
+.geo-brief{margin:12px 16px 0;background:linear-gradient(145deg,#131d28,#0d141d);border:1px solid #243140;border-radius:20px;padding:16px}
+.geo-brief h3{font-family:var(--font-display);font-size:14px;display:flex;gap:8px;align-items:center}
+.geo-brief p{margin-top:8px;font-size:13px;line-height:1.65;color:#c4cfda}
+.geo-strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 0}
+.geo-stat{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:12px}
+.geo-stat small{display:block;color:var(--muted);font-size:10.5px}
+.geo-stat strong{display:block;font-family:var(--font-display);font-size:16px;margin-top:4px}
+.geo-stat span{display:block;font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.45}
+.geo-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.geo-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.geo-card summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:11px;padding:14px}
+.geo-card summary::-webkit-details-marker{display:none}
+.geo-ico{width:44px;height:44px;border-radius:13px;background:var(--panel-2);display:grid;place-items:center;font-size:22px;flex:none}
+.geo-sum{flex:1;min-width:0}
+.geo-sum small{display:block;color:var(--muted);font-size:10.5px}
+.geo-sum strong{display:block;font-family:var(--font-display);font-size:14.5px;line-height:1.25;margin-top:2px}
+.geo-lv{font-size:11px;font-weight:800;padding:5px 9px;border-radius:99px;white-space:nowrap}
+.lv-hi{background:rgba(255,90,104,.13);color:var(--red)}
+.lv-mid{background:rgba(255,176,32,.13);color:#ffb020}
+.geo-chev{color:var(--muted);transition:transform .2s;font-size:12px}
+.geo-card[open] .geo-chev{transform:rotate(180deg)}
+.geo-body{padding:0 14px 16px;border-top:1px solid #18222d}
+.geo-body h4{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#5f6d7a;font-weight:800;margin:14px 0 7px}
+.geo-body ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.geo-body li{font-size:12.5px;line-height:1.55;color:#c4cfda;padding-left:14px;position:relative}
+.geo-body li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+.geo-body p{font-size:12.5px;line-height:1.6;color:#c4cfda}
+.geo-exp,.geo-watch{display:flex;flex-wrap:wrap;gap:6px}
+.geo-chip{font-size:11px;font-weight:800;font-family:var(--font-display);padding:5px 9px;border-radius:99px;border:1px solid var(--line);background:#0d141d}
+.geo-chip.up{border-color:rgba(0,224,138,.4);background:rgba(0,224,138,.08)}
+.geo-chip.down{border-color:rgba(255,90,104,.4);background:rgba(255,90,104,.08)}
+.geo-chip.mix{color:#ffb020;border-color:rgba(255,176,32,.4);background:rgba(255,176,32,.08)}
+.geo-scn{display:flex;flex-direction:column;gap:8px}
+.geo-scn div{background:#0d141d;border:1px solid #1d2833;border-radius:12px;padding:10px 12px}
+.geo-scn b{display:block;font-family:var(--font-display);font-size:12px;margin-bottom:3px}
+.geo-scn span{font-size:12px;line-height:1.5;color:var(--muted)}
+.geo-watch span{font-size:11px;color:var(--muted);background:#0d141d;border:1px solid var(--line);border-radius:99px;padding:5px 10px}
+.geo-sector{margin:12px 16px 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px}
+.geo-sec-head h3{font-family:var(--font-display);font-size:15px}
+.geo-sec-head p{color:var(--muted);font-size:11.5px;margin-top:3px}
+.geo-srow{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid #18222d}
+.geo-srow:last-child{border-bottom:none;padding-bottom:0}
+.geo-arrow{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.geo-arrow.up{background:rgba(0,224,138,.12)}
+.geo-arrow.down{background:rgba(255,90,104,.12)}
+.geo-arrow.mix{background:rgba(255,176,32,.12);color:#ffb020}
+.geo-srow strong{display:block;font-family:var(--font-display);font-size:13px}
+.geo-srow em{display:block;font-style:normal;font-size:11px;color:var(--green);font-weight:700;margin-top:2px}
+.geo-srow span{display:block;font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:3px}
+.geo-src{margin:14px 16px 0;font-size:11.5px;color:var(--muted);line-height:1.6}
+.geo-src h3{font-family:var(--font-display);font-size:13px;color:var(--text);margin-bottom:6px}
+.geo-src a{color:var(--green);text-decoration:none}
+.geo-src li{margin-bottom:5px;list-style:none}
+</style>
+</head>
+<body>
+<div class="screen">
+
+<section id="splash">
+<div class="brand-mark"><svg viewBox="0 0 64 64" fill="none"><path d="M10 44 L24 28 L34 36 L54 14" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="6" fill="white"/><path d="M12 52 H52" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/></svg></div>
+<h1 class="splash-title">RAS.IDX<br><span>TERMINAL</span></h1>
+<p class="splash-sub">Terminal riset saham Indonesia untuk keputusan investasi yang lebih terarah.</p>
+<div class="loader"><div></div></div>
+<div class="splash-note">Smart Research • Indonesian Market</div>
+</section>
+
+<section id="onboarding" class="hidden">
+<div class="ob-top"><button class="skip" onclick="goHome()">Lewati</button></div>
+<div class="slider" id="slider">
+<div class="track" id="track">
+<div class="slide">
+<div class="ob-art">
+<div class="mini-dashboard">
+<div class="mini-header"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-pill">RAS.IDX</span></div>
+<div class="mini-row">
+<div class="mini-stat"><small>IHSG</small><strong>7.412</strong><em class="up">+0,84%</em></div>
+<div class="mini-stat"><small>LQ45</small><strong>918</strong><em class="up">+0,61%</em></div>
+</div>
+<svg class="mini-chart" viewBox="0 0 300 110" preserveAspectRatio="none">
+<defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00e08a" stop-opacity=".45"/><stop offset="100%" stop-color="#00e08a" stop-opacity="0"/></linearGradient></defs>
+<path d="M0 82 L38 64 L72 74 L108 46 L146 58 L184 30 L224 42 L262 20 L300 30 L300 110 L0 110 Z" fill="url(#chartFill)"/>
+<path class="chart-line" d="M0 82 L38 64 L72 74 L108 46 L146 58 L184 30 L224 42 L262 20 L300 30" fill="none" stroke="#00e08a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle class="chart-dot" cx="262" cy="20" r="6" fill="#00e08a"/>
+</svg>
+<div class="mini-stocks">
+<div class="mini-stock"><b>BBCA</b><span>9.850</span><em class="up">+1,55%</em></div>
+<div class="mini-stock"><b>BBRI</b><span>4.780</span><em class="up">+2,10%</em></div>
+<div class="mini-stock"><b>TLKM</b><span>2.940</span><em class="down">-0,68%</em></div>
+</div>
+</div>
+</div>
+<h1 class="ob-title">Pantau pasar dalam satu layar</h1>
+<p class="ob-desc">Lihat pergerakan IHSG dan indeks saham Indonesia secara ringkas.</p>
+</div>
+<div class="slide">
+<div class="ob-art">
+<div class="search-art">
+<div class="search-field"><span>🔍</span> Cari emiten…</div>
+<div class="search-result"><div class="badge">BB</div><div><strong>BBCA</strong><span>Bank Central Asia</span></div><div class="price"><strong>Rp 9.850</strong><span class="up">+1,55%</span></div></div>
+<div class="search-tags"><span class="tag">Perbankan</span><span class="tag">Blue Chip</span><span class="tag">LQ45</span></div>
+</div>
+</div>
+<h1 class="ob-title">Temukan emiten dengan cepat</h1>
+<p class="ob-desc">Cari saham berdasarkan kode emiten atau nama perusahaan, lalu telusuri detailnya.</p>
+</div>
+<div class="slide">
+<div class="ob-art">
+<div class="riset-art">
+<div class="riset-head"><span>🧠</span><span>Skor Riset BBCA</span></div>
+<div class="riset-row"><span>Fundamental</span><span class="up">86/100</span></div>
+<div class="riset-bar" style="--w:86%"><div></div></div>
+<div class="riset-row"><span>Valuasi</span><span class="up">78/100</span></div>
+<div class="riset-bar" style="--w:78%"><div></div></div>
+<div class="riset-row"><span>Momentum</span><span class="down">54/100</span></div>
+<div class="riset-bar" style="--w:54%"><div style="background:linear-gradient(90deg,#ff5a68,#ff8a65)"></div></div>
+</div>
+</div>
+<h1 class="ob-title">Riset sebelum memutuskan</h1>
+<p class="ob-desc">Akses analisis fundamental, valuasi, momentum harga, dan indikator risiko emiten.</p>
+</div>
+</div>
+</div>
+<div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+<p class="swipe-hint">Geser kiri atau kanan untuk berpindah slide</p>
+<div class="ob-actions">
+<button class="ghost-btn" onclick="prevSlide()">Kembali</button>
+<button class="primary-btn" id="nextBtn" onclick="nextSlide()">Berikutnya</button>
+</div>
+</section>
+
+<section id="home" class="hidden">
+<header class="header">
+<div class="brand">
+<div class="logo"><svg viewBox="0 0 64 64" fill="none"><path d="M10 44 L24 28 L34 36 L54 14" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="6" fill="white"/><path d="M12 52 H52" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/></svg></div>
+<div><div class="brand-title">RAS.IDX Terminal</div><div class="brand-subtitle">Riset saham Indonesia</div></div>
+</div>
+<div style="display:flex;gap:6px"><button class="icon-btn">🔔</button><button class="icon-btn">👤</button></div>
+</header>
+<main class="content">
+<section class="greeting"><h1>Selamat datang, Investor</h1><p>Pantau IHSG dan telusuri indeks saham Indonesia.</p></section>
+<section class="ihsg-card">
+<div class="ihsg-top">
+<div><div class="ihsg-label">Indeks Harga Saham Gabungan</div><div class="ihsg-value">7.412,35</div><div class="ihsg-change">▲ +0,84%</div></div>
+<div class="ihsg-meta"><div><strong>7.438,60</strong>High</div><div><strong>7.371,20</strong>Low</div><div><strong>Rp 8,2 T</strong>Value</div></div>
+</div>
+</section>
+<section class="chart-card">
+<div class="chart-head"><h2>Grafik IHSG</h2><span>TradingView</span></div>
+<div class="tv-container"><div class="tradingview-widget-container" id="tv_chart"><div class="tradingview-widget-container__widget"></div></div></div>
+<div class="tv-note">Gunakan toolbar di dalam grafik untuk memilih timeframe, menambahkan indikator, dan menggambar analisis teknikal. Data IHSG disediakan oleh TradingView.</div>
+</section>
+<section>
+<div class="section-head"><h2>Indeks Saham</h2><button>Semua indeks</button></div>
+<div class="index-list" id="indexList"></div>
+</section>
+<section class="research-card">
+<div class="research-head"><span>🌐</span><span>Riset Geopolitik</span></div>
+<p>Pantau risiko geopolitik global dan dampaknya ke sektor serta saham di IDX.</p>
+<button class="primary-btn full" onclick="showRiset()">Buka Riset Geopolitik</button>
+</section>
+</main>
+</section>
+
+<section id="compare" class="hidden">
+<header class="header">
+<div class="brand">
+<div class="logo"><svg viewBox="0 0 64 64" fill="none"><path d="M10 44 L24 28 L34 36 L54 14" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="6" fill="white"/><path d="M12 52 H52" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/></svg></div>
+<div><div class="brand-title">Banding Saham</div><div class="brand-subtitle">Bandingkan hingga 4 emiten</div></div>
+</div>
+<div><button class="icon-btn" onclick="showHome()">🏠</button></div>
+</header>
+<div class="compare-hero"><h1>Bandingkan Emiten</h1><p>Pilih saham, lihat kinerja harga, valuasi, dan fundamental berdampingan.</p></div>
+<div class="cmp-chips" id="cmpChips"></div>
+<div class="cmp-card">
+ <div class="cmp-card-head"><div><h3>Kinerja Harga</h3><p>Perubahan harga (%) sejak awal periode</p></div></div>
+ <div class="cmp-periods" id="cmpPeriods">
+  <button data-k="21">1B</button><button data-k="63" class="active">3B</button><button data-k="126">6B</button><button data-k="249">1T</button>
+ </div>
+ <div class="cmp-chart-wrap"><svg id="cmpChart" viewBox="0 0 320 220"></svg><div class="cmp-tip hidden" id="cmpTip"></div></div>
+ <div class="cmp-legend" id="cmpLegend"></div>
+</div>
+<div class="cmp-card">
+ <div class="cmp-card-head"><div><h3>Perbandingan Metrik</h3><p>Nilai terbaik per metrik ditandai hijau</p></div></div>
+ <div id="cmpTable"></div>
+</div>
+<div class="compare-note">Data dan grafik pada halaman ini adalah contoh statis (grafik disimulasikan). Untuk penggunaan nyata, hubungkan ke data pasar dan laporan keuangan emiten terkini. Bukan ajakan membeli atau menjual efek.</div>
+<div class="cmp-sheet hidden" id="cmpSheet">
+ <div class="cmp-backdrop" onclick="closeCmpSheet()"></div>
+ <div class="cmp-panel">
+  <div class="cmp-panel-head"><strong>Pilih saham</strong><button class="icon-btn" onclick="closeCmpSheet()">✕</button></div>
+  <input class="cmp-search" id="cmpSearch" placeholder="Cari kode, nama, atau sektor…" autocomplete="off">
+  <div class="cmp-hint" id="cmpHint"></div>
+  <div class="cmp-list" id="cmpList"></div>
+ </div>
+</div>
+</section>
+
+<section id="screener" class="hidden">
+<header class="header">
+<div class="brand">
+<div class="logo"><svg viewBox="0 0 64 64" fill="none"><path d="M10 44 L24 28 L34 36 L54 14" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="6" fill="white"/><path d="M12 52 H52" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/></svg></div>
+<div><div class="brand-title">Screener Saham</div><div class="brand-subtitle">Valuasi • Fundamental • Teknikal</div></div>
+</div>
+<div><button class="icon-btn" onclick="showHome()">🏠</button></div>
+</header>
+<div class="screen-hero"><h1>Screener Saham</h1><p>Saring saham dengan banyak kriteria, atau mulai dari strategi siap pakai.</p></div>
+<div class="screen-filters" id="scrPresets"></div>
+<div class="scr-tools">
+ <input class="scr-search" id="scrSearch" placeholder="Cari kode atau nama emiten…" autocomplete="off">
+ <button class="scr-filter-btn" onclick="openScrSheet()">⚙️ Filter<b id="scrBadge" class="hidden"></b></button>
+</div>
+<div class="scr-active" id="scrActive"></div>
+<div class="scr-bar">
+ <div id="scrCount"></div>
+ <div class="scr-sort"><select id="scrSort" onchange="scrSetSort(this.value)"></select><button id="scrDir" onclick="scrToggleDir()" aria-label="Arah urutan">↓</button></div>
+</div>
+<div class="screen-list" id="screenerList"></div>
+<div class="screen-note">Data pada screener ini adalah contoh statis. Untuk penggunaan nyata, hubungkan ke data pasar dan laporan keuangan emiten terkini. Hasil screener bersifat edukatif dan bukan ajakan membeli atau menjual efek.</div>
+<div class="cmp-sheet hidden" id="scrSheet">
+ <div class="cmp-backdrop" onclick="closeScrSheet()"></div>
+ <div class="cmp-panel tall">
+  <div class="cmp-panel-head"><strong>Filter Screener</strong><button class="icon-btn" onclick="closeScrSheet()">✕</button></div>
+  <div class="scr-body" id="scrBody"></div>
+  <div class="scr-foot"><button class="ghost-btn" onclick="scrDraftReset()">Reset</button><button class="primary-btn" id="scrApply" onclick="scrApply()">Tampilkan</button></div>
+ </div>
+</div>
+<div class="scr-toast hidden" id="scrToast"></div>
+</section>
+
+<section id="news" class="hidden">
+<header class="header">
+<div class="brand">
+<div class="logo"><svg viewBox="0 0 64 64" fill="none"><path d="M10 44 L24 28 L34 36 L54 14" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="6" fill="white"/><path d="M12 52 H52" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/></svg></div>
+<div><div class="brand-title">Berita Terkini</div><div class="brand-subtitle">Pasar & emiten Indonesia</div></div>
+</div>
+<div><button class="icon-btn" onclick="showHome()">🏠</button></div>
+</header>
+<div class="news-hero"><h1>Berita Pasar</h1><p>Ikuti perkembangan pasar, kebijakan, dan emiten yang berpengaruh.</p></div>
+<div class="news-filters" id="newsFilters">
+<button class="filter-chip active" data-cat="semua">Semua</button>
+<button class="filter-chip" data-cat="pasar">Pasar</button>
+<button class="filter-chip" data-cat="makro">Makro</button>
+<button class="filter-chip" data-cat="emiten">Emiten</button>
+<button class="filter-chip" data-cat="riset">Riset</button>
+</div>
+<div class="news-list" id="newsList"></div>
+</section>
+
+<section id="riset" class="hidden">
+<header class="header">
+<div class="brand">
+<div class="logo"><svg viewBox="0 0 64 64" fill="none"><path d="M10 44 L24 28 L34 36 L54 14" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="54" cy="14" r="6" fill="white"/><path d="M12 52 H52" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/></svg></div>
+<div><div class="brand-title">Riset Geopolitik</div><div class="brand-subtitle">Risiko global • Dampak ke IDX</div></div>
+</div>
+<div><button class="icon-btn" onclick="showHome()">🏠</button></div>
+</header>
+<div class="riset-hero"><h1>Riset Geopolitik</h1><p>Isu global yang menggerakkan pasar saham Indonesia, dari energi dan perdagangan sampai suku bunga.</p></div>
+<div class="geo-asof">Diperbarui 24 Nov 2026 • berdasarkan laporan publik sampai 19 Nov 2026</div>
+<div class="geo-brief">
+ <h3><span>🧭</span><span>Ringkasan</span></h3>
+ <p>Sepanjang November, pasar saham Indonesia dibayangi tiga hal sekaligus: gejolak harga minyak akibat konflik AS–Iran di sekitar Selat Hormuz, ekspektasi suku bunga global yang lebih ketat, dan penyesuaian indeks MSCI. IHSG ditutup di 5.194 pada 19 Nov, setelah sempat menguat ke 5.344 pada 13 Nov. Satu faktor penyangga: jeda perang dagang AS–China diperpanjang sampai 10 Jan 2027.</p>
+</div>
+<div class="geo-strip" id="geoStrip"></div>
+<div class="section-head" style="padding:16px 16px 0"><h2>Tema Risiko</h2></div>
+<div class="screen-filters" id="geoFilters"></div>
+<div class="geo-list" id="geoList"></div>
+<div class="geo-sector">
+ <div class="geo-sec-head"><h3>Peta Dampak Sektor</h3><p>Arah dampak bersifat hipotetis, bukan prediksi atau rekomendasi.</p></div>
+ <div id="geoSectors"></div>
+</div>
+<div class="geo-src" id="geoSources"></div>
+<div style="padding:14px 16px 4px;color:#5f6d7a;font-size:10.5px;text-align:center;line-height:1.6">Level risiko adalah penilaian ringkas berdasarkan sumber publik, bukan prediksi. Situasi geopolitik dapat berubah cepat. Informasi ini bersifat edukatif dan bukan ajakan membeli atau menjual efek.</div>
+</section>
+
+</div>
+
+<nav class="bottom-nav hidden" id="bottomNav">
+<button class="nav-item active" id="homeNav"><span>🏠</span>Beranda</button>
+<button class="nav-item" id="screenerNav"><span>🔍</span>Screener</button>
+<button class="nav-item" id="compareNav"><span>⚖️</span>Banding</button>
+<button class="nav-item" id="risetNav"><span>🌐</span>Riset</button>
+<button class="nav-item" id="newsNav"><span>📰</span>Berita</button>
+</nav>
+
+<script>
+let current=0;const total=3;const track=document.getElementById("track");const dots=document.querySelectorAll(".dot");const nextBtn=document.getElementById("nextBtn");
+function updateSlider(){track.style.transform=`translateX(-${current*(100/total)}%)`;dots.forEach((d,i)=>d.classList.toggle("active",i===current));nextBtn.textContent=current===total-1?"Mulai Sekarang":"Berikutnya"}
+function nextSlide(){if(current<total-1){current++;updateSlider()}else{goHome()}}
+function prevSlide(){if(current>0){current--;updateSlider()}}
+let tvLoaded=false;
+function loadTradingView(){
+ if(tvLoaded)return;tvLoaded=true;
+ const s=document.createElement("script");
+ s.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+ s.async=true;
+ s.innerHTML=JSON.stringify({autosize:true,symbol:"IDX:COMPOSITE",interval:"D",timezone:"Asia/Jakarta",theme:"dark",style:"1",locale:"id",backgroundColor:"rgba(14, 20, 28, 1)",gridColor:"rgba(29, 40, 51, 0.6)",hide_top_toolbar:false,hide_legend:false,hide_side_toolbar:false,allow_symbol_change:false,save_image:false,withdateranges:true,details:true,calendar:false,studies:["STD;EMA","STD;RSI"],support_host:"https://www.tradingview.com"});
+ document.getElementById("tv_chart").appendChild(s);
+}
+function goHome(){document.getElementById("onboarding").classList.add("hidden");document.getElementById("home").classList.remove("hidden");document.getElementById("bottomNav").classList.remove("hidden");loadTradingView()}
+let startX=0,startY=0,isDragging=false,deltaX=0;const slider=document.getElementById("slider");
+slider.addEventListener("touchstart",e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;isDragging=true;deltaX=0;track.style.transition="none"},{passive:true});
+slider.addEventListener("touchmove",e=>{if(!isDragging)return;deltaX=e.touches[0].clientX-startX;const move=current*(100/total)-deltaX/slider.offsetWidth*(100/total);track.style.transform=`translateX(-${move}%)`},{passive:true});
+slider.addEventListener("touchend",()=>{if(!isDragging)return;isDragging=false;track.style.transition="transform .38s cubic-bezier(.25,.8,.25,1)";if(Math.abs(deltaX)>55){deltaX<0?nextSlide():prevSlide()}else{updateSlider()}});
+slider.addEventListener("mousedown",e=>{startX=e.clientX;isDragging=true;deltaX=0;track.style.transition="none"});
+window.addEventListener("mousemove",e=>{if(!isDragging)return;deltaX=e.clientX-startX;const move=current*(100/total)-deltaX/slider.offsetWidth*(100/total);track.style.transform=`translateX(-${move}%)`});
+window.addEventListener("mouseup",()=>{if(!isDragging)return;isDragging=false;track.style.transition="transform .38s cubic-bezier(.25,.8,.25,1)";if(Math.abs(deltaX)>55){deltaX<0?nextSlide():prevSlide()}else{updateSlider()}});
+document.addEventListener("keydown",e=>{if(document.getElementById("onboarding").classList.contains("hidden"))return;if(e.key==="ArrowRight")nextSlide();if(e.key==="ArrowLeft")prevSlide()});
+setTimeout(()=>{document.getElementById("splash").classList.add("hidden");document.getElementById("onboarding").classList.remove("hidden")},2400);
+
+const indexCategories=[
+ {code:"LQ45",name:"45 saham paling likuid",value:"918,20",change:"+0,61%",up:true},
+ {code:"IDX30",name:"30 saham likuid & kapitalisasi besar",value:"1.284,65",change:"+0,72%",up:true},
+ {code:"IDX35",name:"35 saham dengan likuiditas tinggi",value:"712,48",change:"+0,48%",up:true},
+ {code:"IDX80",name:"80 saham dengan likuiditas tinggi",value:"812,74",change:"-0,12%",up:false},
+ {code:"IDXQ30",name:"30 perusahaan kualitas tinggi",value:"1.026,31",change:"+0,35%",up:true},
+ {code:"IDXESGL",name:"Saham dengan praktik ESG",value:"212,86",change:"+0,18%",up:true},
+ {code:"IDXDIV20",name:"20 saham dengan dividen menarik",value:"684,20",change:"+0,29%",up:true},
+ {code:"IDXG30",name:"30 perusahaan dengan tata kelola baik",value:"318,54",change:"-0,08%",up:false},
+ {code:"SMINFRA18",name:"18 saham infrastruktur",value:"726,10",change:"+0,42%",up:true},
+ {code:"SMIDEV20",name:"20 saham sektor property & real estate",value:"512,36",change:"+0,15%",up:true}
+];
+const badgeOf={LQ45:"LQ",IDX30:"30",IDX35:"35",IDX80:"80",IDXQ30:"Q30",IDXESGL:"ESG",IDXDIV20:"DIV",IDXG30:"G30",SMINFRA18:"INF",SMIDEV20:"DEV"};
+document.getElementById("indexList").innerHTML=indexCategories.map(i=>`<div class="index-row"><div class="index-badge">${badgeOf[i.code]||i.code.slice(0,3)}</div><div class="index-info"><strong>${i.code}</strong><span>${i.name}</span></div><div class="index-price"><strong>${i.value}</strong><span class="${i.up?"up":"down"}">${i.change}</span></div></div>`).join("");
+
+const newsData=[
+ {cat:"pasar",icon:"📈",title:"IHSG ditutup menguat didorong saham perbankan",desc:"Indeks harga saham gabungan bergerak naik seiring meningkatnya minat beli pada saham perbankan berkapitalisasi besar.",source:"RAS.IDX Market Desk",time:"12 menit lalu"},
+ {cat:"makro",icon:"🏛️",title:"Pelaku pasar memantau arah kebijakan suku bunga",desc:"Ekspektasi arah kebijakan moneter menjadi perhatian utama investor terhadap arah pergerakan pasar modal domestik.",source:"RAS.IDX Macro Desk",time:"35 menit lalu"},
+ {cat:"emiten",icon:"🏦",title:"Emiten perbankan dipantau menjelang pembukuan kuartalan",desc:"Kinerja kredit, kualitas aset, dan net interest margin menjadi faktor yang diperhatikan investor pada sektor perbankan.",source:"RAS.IDX Equity Desk",time:"1 jam lalu"},
+ {cat:"riset",icon:"🧠",title:"Sektor energi tetap menjadi fokus riset investor",desc:"Harga komoditas, produksi, dan rencana ekspansi menjadi faktor penting dalam menilai prospek emiten energi.",source:"RAS.IDX Research",time:"2 jam lalu"},
+ {cat:"pasar",icon:"🌏",title:"Sentimen pasar global berpengaruh pada perdagangan domestik",desc:"Pergerakan pasar global dan arus dana asing menjadi faktor yang dipantau dalam aktivitas perdagangan saham domestik.",source:"RAS.IDX Market Desk",time:"3 jam lalu"},
+ {cat:"emiten",icon:"⛏️",title:"Emiten tambang dipantau menyusul pergerakan harga komoditas",desc:"Harga komoditas dan prospek permintaan global menjadi faktor utama yang memengaruhi sentimen sektor tambang.",source:"RAS.IDX Sector Desk",time:"4 jam lalu"}
+];
+let activeNewsCat="semua";
+function renderNews(){
+ const filtered=activeNewsCat==="semua"?newsData:newsData.filter(n=>n.cat===activeNewsCat);
+ document.getElementById("newsList").innerHTML=filtered.map(n=>`<article class="news-card"><div class="news-image"><span class="news-tag">${n.cat}</span>${n.icon}</div><div class="news-body"><div class="news-meta"><span>${n.time}</span><span>•</span><span>${n.source}</span></div><h3 class="news-title">${n.title}</h3><p class="news-desc">${n.desc}</p></div></article>`).join("");
+}
+document.getElementById("newsFilters").addEventListener("click",e=>{const btn=e.target.closest(".filter-chip");if(!btn)return;document.querySelectorAll(".filter-chip").forEach(x=>x.classList.remove("active"));btn.classList.add("active");activeNewsCat=btn.dataset.cat;renderNews()});
+
+/* ===== Riset Geopolitik ===== */
+const geoStrip=[
+ {l:"IHSG (penutupan 19 Nov)",v:"5.194",s:"−1,02% • sempat 5.344 pada 13 Nov",c:"down"},
+ {l:"Minyak Brent (18 Nov)",v:"±US$93–100+",s:"Laporan antar sumber berbeda; ±US$106 pada 2 Nov",c:""},
+ {l:"Jeda tarif AS–China",v:"s.d. 10 Jan 2027",s:"Tarif tambahan 10% dari China tetap berlaku",c:""},
+ {l:"Rebalancing MSCI",v:"1 Des 2026",s:"BRPT dan BRMS keluar dari Global Standard",c:""}
+];
+const geoThemes=["Semua","Energi & Timur Tengah","Perdagangan","Moneter","Domestik"];
+const geoData=[
+ {id:"hormuz",theme:"Energi & Timur Tengah",icon:"🛢️",title:"Perang AS–Iran dan Selat Hormuz",lv:"Tinggi",
+  situasi:[
+   "Jalur Selat Hormuz masih terganggu. Serangan terhadap kapal tanker dan klaim serangan Houthi ke pipa Arab Saudi dilaporkan pada November, dan pemimpin tertinggi Iran dilaporkan menyatakan selat tetap ditutup (18 Nov).",
+   "Diplomasi berjalan dua arah: pembicaraan yang dimediasi Qatar dilaporkan pada 2 Nov, tetapi Iran juga dilaporkan membantah adanya negosiasi damai (12 Nov).",
+   "Harga Brent berayun lebar: sekitar US$106 pada 2 Nov, sekitar US$93 pada pagi 18 Nov, sementara laporan lain menyebut di atas US$100 pada sore harinya.",
+   "IEA memperkirakan pasokan kembali surplus pada kuartal IV 2026 karena ekspor Teluk pulih. Goldman Sachs menilai Brent bisa mencapai US$140 pada 2027 bila produksi Teluk tetap jauh di bawah rata-rata 2025."
+  ],
+  dampak:"Indonesia adalah importir minyak neto. Harga minyak yang tinggi menekan rupiah, neraca perdagangan, subsidi, dan inflasi, sehingga ikut menekan valuasi saham secara luas. Di sisi lain, emiten energi dan batu bara bisa diuntungkan oleh harga komoditas.",
+  exp:[["up","MEDC"],["up","ADRO"],["up","PTBA"],["up","UNTR"],["down","UNVR"],["down","INDF"],["down","ICBP"]],
+  skenario:[
+   ["De-eskalasi","Kesepakatan membuka jalur atau gencatan. Minyak cenderung turun, tekanan rupiah dan inflasi mereda, sektor sensitif biaya membaik, sementara saham energi kehilangan sebagian premi."],
+   ["Berlarut dan volatil (kondisi kini)","Harga minyak mengikuti headline harian. Pasar cenderung defensif dan arus dana asing tidak stabil."],
+   ["Eskalasi","Gangguan pasokan melebar dan Brent bisa melonjak. Tekanan pada rupiah dan inflasi meningkat, dan bank sentral cenderung bertahan ketat."]
+  ],
+  pantau:["Harga Brent","USD/IDR","Lalu lintas tanker Hormuz","Perkembangan pembicaraan Qatar","Pasokan IEA"]},
+ {id:"dagang",theme:"Perdagangan",icon:"🚢",title:"Gencatan dagang AS–China",lv:"Sedang",
+  situasi:[
+   "China memperpanjang jeda atas tarif tambahan 24% terhadap barang AS sampai 10 Jan 2027, mulai 10 Nov. Tarif tambahan 10% tetap berlaku, jadi pelonggarannya sebagian.",
+   "KTT di Washington menyepakati pemangkasan tarif sekitar US$60 miliar (US$30 miliar per pihak) dan pembentukan kelompok kerja untuk perdagangan, investasi, dan AI.",
+   "China juga menunda tindakan terhadap sejumlah perusahaan AS dan memperpanjang pengecualian kontrol ekspor mineral kritis hingga tanggal yang sama.",
+   "Beijing menyatakan mencermati rencana AS mengganti tarif yang dibatalkan pengadilan dengan instrumen lain, dan akan menyesuaikan balasannya bila perlu."
+  ],
+  dampak:"China adalah pasar utama komoditas Indonesia seperti batu bara, nikel, dan CPO. Stabilitas hubungan AS–China menopang permintaan dan rantai pasok mineral kritis, termasuk hilirisasi nikel. Tanggal 10 Jan 2027 menjadi titik kritis berikutnya.",
+  exp:[["mix","ADRO"],["mix","PTBA"],["mix","ANTM"],["mix","UNTR"]],
+  skenario:[
+   ["Jeda diperpanjang atau menjadi kesepakatan","Sentimen ekspor dan komoditas membaik, dan risiko rantai pasok mineral kritis mereda."],
+   ["Jeda berakhir tanpa kesepakatan","Tarif tambahan berpotensi berlaku kembali dan perang dagang kembali menjadi risiko utama bagi emiten komoditas."],
+   ["AS memakai instrumen tarif pengganti","China dapat menyesuaikan balasan, sehingga volatilitas ekspor dan rantai pasok meningkat."]
+  ],
+  pantau:["Tenggat 10 Jan 2027","Hasil kelompok kerja AS–China","Kebijakan tarif AS pasca putusan pengadilan","Harga batu bara dan nikel"]},
+ {id:"moneter",theme:"Moneter",icon:"🏦",title:"Suku bunga AS dan arus dana emerging market",lv:"Sedang",
+  situasi:[
+   "Inflasi konsumen AS Oktober naik 0,4% bulanan dan inflasi inti 0,3%, keduanya di atas konsensus. Hal ini memperkuat ekspektasi kebijakan The Fed yang lebih ketat.",
+   "Bank Indonesia menaikkan suku bunga acuan pada 18 Nov. Besaran kenaikannya tidak saya verifikasi dari sumber yang tersedia.",
+   "IHSG turun 1,02% ke 5.194 pada 19 Nov di tengah nada hawkish bank sentral."
+  ],
+  dampak:"Imbal hasil dan dolar AS yang tinggi cenderung menarik dana keluar dari emerging market, menekan rupiah, dan menurunkan valuasi saham. Perbankan sensitif pada biaya dana dan kualitas kredit, sedangkan properti sensitif pada suku bunga KPR.",
+  exp:[["mix","BBCA"],["mix","BBRI"],["mix","BMRI"],["mix","BBNI"],["down","BSDE"]],
+  skenario:[
+   ["Inflasi AS mereda","Ruang pelonggaran terbuka, arus dana ke emerging market pulih, dan tekanan rupiah berkurang."],
+   ["Inflasi tetap tinggi","The Fed bertahan ketat lebih lama. Dolar kuat menekan rupiah dan valuasi saham."],
+   ["Lonjakan minyak menambah inflasi global","Siklus suku bunga tinggi bisa lebih panjang, termasuk di Indonesia."]
+  ],
+  pantau:["Rilis CPI AS","Keputusan dan nada The Fed","USD/IDR","Imbal hasil SBN 10 tahun","Net foreign flow"]},
+ {id:"domestik",theme:"Domestik",icon:"🏛️",title:"Rebalancing MSCI dan isu politik domestik",lv:"Sedang",
+  situasi:[
+   "Dalam review MSCI, BRPT dan BRMS keluar dari MSCI Global Standard, dan BRMS masuk ke Small Cap. Tujuh saham (AVIA, CTRA, MTEL, EMTK, JSMR, RAJA, WIFI) keluar dari Small Cap. Perubahan efektif 1 Des 2026.",
+   "Penyesuaian portofolio dana pasif berpotensi menimbulkan tekanan jual pada saham terdampak di sekitar tanggal efektif.",
+   "Kabar terkait posisi Wakil Presiden diberitakan menjadi perhatian pelaku pasar. Informasi ini belum saya verifikasi secara independen."
+  ],
+  dampak:"Perubahan indeks memicu arus pasif jangka pendek yang tidak selalu terkait fundamental. Ketidakpastian politik domestik dapat menambah premi risiko, terutama bila bersamaan dengan tekanan eksternal.",
+  exp:[["down","BRPT"],["down","CTRA"],["down","EMTK"],["down","JSMR"],["down","MTEL"],["down","AVIA"],["down","RAJA"],["down","WIFI"]],
+  skenario:[
+   ["Rebalancing berjalan mulus","Tekanan terbatas pada saham yang keluar indeks dan mereda setelah tanggal efektif."],
+   ["Arus keluar pasif besar menjelang 1 Des","Volatilitas dan tekanan harga pada saham terdampak meningkat."],
+   ["Isu politik membesar","Premi risiko domestik naik dan arus dana asing menjadi lebih hati-hati."]
+  ],
+  pantau:["Tanggal efektif 1 Des 2026","Volume penutupan saham terdampak","Perkembangan isu politik dari sumber resmi"]}
+];
+const geoSectors=[
+ {s:"Energi dan batu bara",d:"up",t:"MEDC · ADRO · PTBA · UNTR",n:"Harga minyak dan komoditas yang tinggi mendukung pendapatan, tetapi risikonya naik bila harga jatuh saat de-eskalasi."},
+ {s:"Emas dan logam mulia",d:"up",t:"ANTM · MDKA",n:"Permintaan aset aman cenderung naik saat ketidakpastian meningkat."},
+ {s:"Perbankan",d:"mix",t:"BBCA · BBRI · BMRI · BBNI",n:"Sensitif pada rupiah, arus dana asing, dan arah suku bunga."},
+ {s:"Properti",d:"down",t:"BSDE · CTRA",n:"Suku bunga tinggi menekan valuasi dan daya beli KPR."},
+ {s:"Barang konsumsi",d:"down",t:"UNVR · ICBP · INDF",n:"Biaya bahan baku, logistik, dan kurs menekan margin."},
+ {s:"Telekomunikasi",d:"mix",t:"TLKM · ISAT",n:"Relatif defensif, tetapi sensitif pada kurs dan beban utang valas."}
+];
+const geoSources=[
+ ["Fortune IDN, 12 Nov 2026: IHSG tertekan MSCI, inflasi AS, dan geopolitik Hormuz","https://www.fortuneidn.com/market/ihsg-tertekan-sentimen-msci-inflasi-as-dan-geopolitik-hormuz-00-3dhnm-d1k862"],
+ ["Akurat, 18 Nov 2026: IHSG terkoreksi 1,07% ke 5.247,88 saat BI Rate dikerek","https://akurat.co/keuangan/907884/ihsg-terkoreksi-1-07-persen-ke-5-247-88-saat-bi-rate-dikerek"],
+ ["Bisnis.com, 19 Nov 2026: IHSG ditutup turun 1,02% ke 5.194","https://market.bisnis.com/read/20261119/7/2022813/ihsg-ditutup-turun-102-ke-5194-tertekan-nada-hawkish-bank-sentral"],
+ ["Bisnis.com, 13 Nov 2026: IHSG ditutup menguat 1,78% ke 5.344","https://market.bisnis.com/read/20261113/7/2021155/ihsg-ditutup-menguat-178-ke-5344-saham-bbca-bbri-hingga-bumi-melaju"],
+ ["Gulf News, 18 Nov 2026: harga minyak Asia","https://gulfnews.com/business/energy/oil-slips-in-asia-led-by-murban-brent-wti-what-to-know-on-nov-18-2026-1.500751476"],
+ ["Khaleej Times, 2 Nov 2026: harga minyak dan pembicaraan Qatar","https://www.khaleejtimes.com/business/oil-prices-ease-3-on-optimism-for-qatari-led-talks-on-ending-iran-war"],
+ ["Vinetur, 9 Nov 2026: China perpanjang jeda tarif 24% sampai 10 Jan 2027","https://www.vinetur.com/en/20261109110663/china-extends-pause-on-24-tariffs-on-us-goods-until-jan-10-2027.html"]
+];
+let geoTheme="Semua";
+const geoOpen={hormuz:true};
+function geoSetTheme(t){geoTheme=t;renderRiset()}
+function renderRiset(){
+ document.getElementById("geoStrip").innerHTML=geoStrip.map(x=>`<div class="geo-stat"><small>${x.l}</small><strong class="${x.c}">${x.v}</strong><span>${x.s}</span></div>`).join("");
+ document.getElementById("geoFilters").innerHTML=geoThemes.map(t=>`<button class="screen-chip ${geoTheme===t?"active":""}" onclick="geoSetTheme('${t}')">${t}</button>`).join("");
+ const items=geoData.filter(g=>geoTheme==="Semua"||g.theme===geoTheme);
+ const sym={up:"▲",down:"▼",mix:"◆"};
+ document.getElementById("geoList").innerHTML=items.map(g=>`
+ <details class="geo-card" ${geoOpen[g.id]?"open":""} ontoggle="geoOpen['${g.id}']=this.open">
+  <summary><div class="geo-ico">${g.icon}</div><div class="geo-sum"><small>${g.theme}</small><strong>${g.title}</strong></div><span class="geo-lv ${g.lv==="Tinggi"?"lv-hi":"lv-mid"}">${g.lv}</span><span class="geo-chev">▼</span></summary>
+  <div class="geo-body">
+   <h4>Situasi</h4><ul>${g.situasi.map(x=>`<li>${x}</li>`).join("")}</ul>
+   <h4>Jalur dampak ke Indonesia</h4><p>${g.dampak}</p>
+   <h4>Eksposur tematik</h4><div class="geo-exp">${g.exp.map(e=>`<span class="geo-chip ${e[0]}">${sym[e[0]]} ${e[1]}</span>`).join("")}</div>
+   <h4>Skenario</h4><div class="geo-scn">${g.skenario.map(s=>`<div><b>${s[0]}</b><span>${s[1]}</span></div>`).join("")}</div>
+   <h4>Yang dipantau</h4><div class="geo-watch">${g.pantau.map(p=>`<span>${p}</span>`).join("")}</div>
+  </div>
+ </details>`).join("");
+ document.getElementById("geoSectors").innerHTML=geoSectors.map(s=>`<div class="geo-srow"><div class="geo-arrow ${s.d}">${sym[s.d]}</div><div><strong>${s.s}</strong><em>${s.t}</em><span>${s.n}</span></div></div>`).join("");
+ document.getElementById("geoSources").innerHTML=`<h3>Sumber</h3><ul style="padding:0">${geoSources.map(x=>`<li><a href="${x[1]}" target="_blank" rel="noopener noreferrer">${x[0]}</a></li>`).join("")}</ul>`;
+}
+
+const stockDB=[
+ {t:"BBCA",n:"Bank Central Asia",s:"Perbankan",p:9850,mc:1214,per:16.8,pbv:3.6,dy:2.6,roe:22.4,eps:14.2,der:0.38,rsi:61.4,tr:"Bullish",r:12,v:0.9},
+ {t:"BBRI",n:"Bank Rakyat Indonesia",s:"Perbankan",p:4780,mc:724,per:9.4,pbv:2.1,dy:6.2,roe:19.8,eps:11.6,der:0.46,rsi:58.2,tr:"Bullish",r:18,v:1.1},
+ {t:"BMRI",n:"Bank Mandiri",s:"Perbankan",p:4600,mc:429,per:10.6,pbv:1.9,dy:5.8,roe:18.2,eps:12.4,der:0.44,rsi:55.0,tr:"Bullish",r:9,v:1.0},
+ {t:"BBNI",n:"Bank Negara Indonesia",s:"Perbankan",p:4350,mc:162,per:8.2,pbv:1.1,dy:5.4,roe:16.4,eps:9.8,der:0.49,rsi:47.3,tr:"Netral",r:-6,v:1.2},
+ {t:"TLKM",n:"Telkom Indonesia",s:"Telekomunikasi",p:2940,mc:291,per:18.4,pbv:2.4,dy:5.1,roe:12.6,eps:8.4,der:0.52,rsi:55.8,tr:"Bullish",r:5,v:0.9},
+ {t:"ASII",n:"Astra International",s:"Otomotif",p:5250,mc:212,per:14.2,pbv:1.3,dy:7.0,roe:14.2,eps:9.1,der:0.41,rsi:54.1,tr:"Bullish",r:7,v:1.0},
+ {t:"UNVR",n:"Unilever Indonesia",s:"Barang Konsumsi",p:1950,mc:74,per:19.6,pbv:21.5,dy:5.2,roe:98.0,eps:-4.2,der:2.1,rsi:41.2,tr:"Bearish",r:-22,v:1.1},
+ {t:"ICBP",n:"Indofood CBP Sukses Makmur",s:"Barang Konsumsi",p:11200,mc:131,per:13.1,pbv:2.3,dy:3.1,roe:17.6,eps:10.3,der:0.55,rsi:52.6,tr:"Bullish",r:11,v:0.85},
+ {t:"MDKA",n:"Merdeka Copper Gold",s:"Pertambangan",p:2480,mc:60,per:28.4,pbv:3.2,dy:0,roe:16.1,eps:22.8,der:0.58,rsi:63.7,tr:"Bullish",r:25,v:1.6},
+ {t:"ADRO",n:"Alamtri Resources Indonesia",s:"Energi",p:2350,mc:72,per:6.8,pbv:1.2,dy:9.5,roe:24.2,eps:21.4,der:0.36,rsi:59.0,tr:"Bullish",r:20,v:1.4},
+ {t:"PGAS",n:"Perusahaan Gas Negara",s:"Energi",p:1790,mc:43,per:12.4,pbv:1.0,dy:6.8,roe:11.8,eps:16.4,der:0.63,rsi:59.6,tr:"Bullish",r:14,v:1.2},
+ {t:"MEDC",n:"Medco Energi Internasional",s:"Energi",p:1380,mc:35,per:9.8,pbv:1.0,dy:2.4,roe:14.6,eps:18.2,der:1.4,rsi:57.2,tr:"Bullish",r:16,v:1.5}
+];
+const cmpColors=["#00e08a","#3d8bff","#ffb020","#c264ff"];
+let cmpSel=["BBCA","BBRI","BMRI"];
+let cmpPeriod=63;
+let cmpGeom=null;
+const _serCache={};
+const getStock=t=>stockDB.find(x=>x.t===t);
+function fmt(v,d=1){return v.toLocaleString("id-ID",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function pct(v,d=1){return (v>0?"+":"")+fmt(v,d)+"%"}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0;while(!u)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function getSeries(s){
+ if(_serCache[s.t])return _serCache[s.t];
+ const N=250;let seed=7;for(const c of s.t)seed=seed*31+c.charCodeAt(0);
+ const r=rng(seed),sig=0.011*s.v,raw=[0];
+ for(let i=1;i<N;i++)raw.push(raw[i-1]+gauss(r)*sig);
+ const target=Math.log(1+s.r/100);
+ return _serCache[s.t]=raw.map((x,i)=>Math.exp(x+(target-raw[N-1])*i/(N-1)));
+}
+function perf(s,k){const a=getSeries(s);return (a[a.length-1]/a[a.length-1-k]-1)*100}
+function niceStep(x){const p=Math.pow(10,Math.floor(Math.log10(x))),m=x/p;return(m<1.5?1:m<3.5?2:m<7.5?5:10)*p}
+function fmtDate(daysBack){const d=new Date();d.setDate(d.getDate()-Math.round(daysBack));return d.toLocaleDateString("id-ID",{day:"numeric",month:"short"})}
+
+function renderCmpChips(){
+ const chips=cmpSel.map((t,i)=>`<div class="cmp-chip"><i style="background:${cmpColors[i]}"></i>${t}<button onclick="toggleCmp('${t}')" aria-label="Hapus ${t}">✕</button></div>`).join("");
+ document.getElementById("cmpChips").innerHTML=chips+`<button class="cmp-add" onclick="openCmpSheet()" ${cmpSel.length>=4?"disabled":""}>＋ Tambah saham</button>`;
+}
+function renderCmpChart(){
+ const svg=document.getElementById("cmpChart");
+ const W=svg.clientWidth||320,H=220,pl=42,pr=10,pt=12,pb=24;
+ svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+ const k=cmpPeriod,sel=cmpSel.map(getStock);
+ const lines=sel.map(s=>{const a=getSeries(s).slice(-k-1);return a.map(v=>(v/a[0]-1)*100)});
+ const all=lines.flat();let lo=Math.min(0,...all),hi=Math.max(0,...all);
+ const span=(hi-lo)||1;lo-=span*.08;hi+=span*.08;
+ const step=niceStep((hi-lo)/4);
+ const x=i=>pl+i*(W-pl-pr)/k,y=v=>pt+(hi-v)/(hi-lo)*(H-pt-pb);
+ let grid="";
+ for(let t=Math.ceil(lo/step)*step;t<=hi;t+=step){
+  const tv=Math.abs(t)<1e-9?0:t;
+  grid+=`<line x1="${pl}" x2="${W-pr}" y1="${y(tv).toFixed(1)}" y2="${y(tv).toFixed(1)}" stroke="${tv===0?"#3a4a5a":"#1d2833"}" stroke-width="1" ${tv===0?'stroke-dasharray="4 4"':""}/><text x="${pl-6}" y="${(y(tv)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8d9aa8">${tv>0?"+":""}${fmt(tv,step<1?1:0)}%</text>`;
+ }
+ const xl=[[0,"start"],[k/2,"middle"],[k,"end"]].map(([i,a])=>`<text x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="${a}" font-size="10" fill="#8d9aa8">${fmtDate((k-i)*7/5)}</text>`).join("");
+ const paths=lines.map((l,j)=>{
+  const d=l.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const last=l[l.length-1];
+  return `<path d="${d}" fill="none" stroke="${cmpColors[j]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${x(k).toFixed(1)}" cy="${y(last).toFixed(1)}" r="4" fill="${cmpColors[j]}" stroke="#0e141c" stroke-width="2"/>`;
+ }).join("");
+ svg.innerHTML=`${grid}${xl}${paths}<g id="cmpHover"></g>`;
+ cmpGeom={W,pl,pr,k,x,y,lines,sel};
+ document.getElementById("cmpLegend").innerHTML=sel.map((s,j)=>{const r=lines[j][lines[j].length-1];return `<div class="cmp-leg-row"><i style="background:${cmpColors[j]}"></i><div><strong>${s.t}</strong><small>${s.n}</small></div><div class="ret ${r>=0?"up":"down"}">${pct(r)}</div></div>`}).join("");
+}
+function cmpHover(e){
+ const g=cmpGeom;if(!g)return;
+ const svg=document.getElementById("cmpChart"),rect=svg.getBoundingClientRect();
+ const px=(e.clientX-rect.left)*(g.W/rect.width);
+ let i=Math.round((px-g.pl)/((g.W-g.pl-g.pr)/g.k));i=Math.max(0,Math.min(g.k,i));
+ const cx=g.x(i);
+ document.getElementById("cmpHover").innerHTML=`<line x1="${cx}" x2="${cx}" y1="8" y2="196" stroke="#8d9aa8" stroke-width="1" stroke-dasharray="3 3"/>`+g.lines.map((l,j)=>`<circle cx="${cx}" cy="${g.y(l[i])}" r="5" fill="${cmpColors[j]}" stroke="#0e141c" stroke-width="2"/>`).join("");
+ const tip=document.getElementById("cmpTip");
+ tip.innerHTML=`<b>${fmtDate((g.k-i)*7/5)}</b>`+g.sel.map((s,j)=>`<div><i style="background:${cmpColors[j]}"></i>${s.t}<span class="${g.lines[j][i]>=0?"up":"down"}">${pct(g.lines[j][i])}</span></div>`).join("");
+ tip.classList.remove("hidden");
+ const sx=cx*(rect.width/g.W),right=cx>g.W*0.5;
+ tip.style.left=(right?sx-10:sx+10)+"px";tip.style.transform=right?"translateX(-100%)":"none";
+}
+function cmpLeave(){const h=document.getElementById("cmpHover");if(h)h.innerHTML="";document.getElementById("cmpTip").classList.add("hidden")}
+function renderCmpTable(){
+ const sel=cmpSel.map(getStock),n=sel.length;
+ const metrics=[
+  {g:"Valuasi",l:"PER",get:s=>s.per,f:v=>v>0?fmt(v)+"x":"N/A",best:"min",ok:v=>v>0},
+  {g:"Valuasi",l:"PBV",get:s=>s.pbv,f:v=>fmt(v)+"x",best:"min"},
+  {g:"Valuasi",l:"Div. Yield",get:s=>s.dy,f:v=>fmt(v)+"%",best:"max"},
+  {g:"Profitabilitas",l:"ROE",get:s=>s.roe,f:v=>fmt(v)+"%",best:"max"},
+  {g:"Profitabilitas",l:"Growth EPS",get:s=>s.eps,f:v=>pct(v),best:"max"},
+  {g:"Risiko",l:"DER",get:s=>s.der,f:v=>fmt(v,2)+"x",best:"min"},
+  {g:"Kinerja Harga",l:"1 Bulan",get:s=>perf(s,21),f:v=>pct(v),best:"max",c:1},
+  {g:"Kinerja Harga",l:"3 Bulan",get:s=>perf(s,63),f:v=>pct(v),best:"max",c:1},
+  {g:"Kinerja Harga",l:"6 Bulan",get:s=>perf(s,126),f:v=>pct(v),best:"max",c:1},
+  {g:"Kinerja Harga",l:"1 Tahun",get:s=>perf(s,249),f:v=>pct(v),best:"max",c:1},
+  {g:"Teknikal",l:"RSI (14)",get:s=>s.rsi,f:v=>fmt(v),best:null},
+  {g:"Teknikal",l:"Tren",get:s=>s.tr,f:v=>v,best:null,t:1}
+ ];
+ const wins=new Array(n).fill(0);let scored=0;
+ const rows=metrics.map(m=>{
+  const vals=sel.map(m.get);let bestIdx=[];
+  if(m.best&&n>1){
+   const cand=vals.map((v,i)=>({v,i})).filter(o=>!m.ok||m.ok(o.v));
+   if(cand.length>1){const b=m.best==="max"?Math.max(...cand.map(o=>o.v)):Math.min(...cand.map(o=>o.v));bestIdx=cand.filter(o=>o.v===b).map(o=>o.i);scored++;bestIdx.forEach(i=>wins[i]++)}
+  }
+  return {m,vals,bestIdx};
+ });
+ const colHead=sel.map((s,i)=>`<span class="v" style="color:${cmpColors[i]}">${s.t}</span>`).join("");
+ let html=`<div class="cmp-grid head" style="--n:${n}"><span></span>${colHead}</div>`;
+ html+=`<div class="cmp-grid" style="--n:${n}"><span>Harga</span>${sel.map(s=>`<span class="v">Rp ${s.p.toLocaleString("id-ID")}</span>`).join("")}</div>`;
+ html+=`<div class="cmp-grid" style="--n:${n}"><span>Kapitalisasi</span>${sel.map(s=>`<span class="v">Rp ${s.mc.toLocaleString("id-ID")} T</span>`).join("")}</div>`;
+ html+=`<div class="cmp-grid" style="--n:${n}"><span>Sektor</span>${sel.map(s=>`<span class="v" style="font-size:10.5px;font-weight:600">${s.s}</span>`).join("")}</div>`;
+ if(n>1&&scored)html+=`<div class="cmp-grid" style="--n:${n}"><span>Unggul di</span>${wins.map(w=>`<span class="v ${w===Math.max(...wins)&&w>0?"best":""}">${w}/${scored}</span>`).join("")}</div>`;
+ let lastG="";
+ rows.forEach(({m,vals,bestIdx})=>{
+  if(m.g!==lastG){html+=`<div class="cmp-group">${m.g}</div>`;lastG=m.g}
+  html+=`<div class="cmp-grid" style="--n:${n}"><span>${m.l}</span>${vals.map((v,i)=>{
+   let cls=bestIdx.includes(i)?"best":"";
+   if(m.c&&!cls)cls=v>=0?"up":"down";
+   if(m.t)cls=v==="Bullish"?"up":v==="Bearish"?"down":"";
+   return `<span class="v ${cls}">${m.f(v)}</span>`}).join("")}</div>`;
+ });
+ document.getElementById("cmpTable").innerHTML=html;
+}
+function renderCmpList(){
+ const q=document.getElementById("cmpSearch").value.trim().toLowerCase();
+ const list=stockDB.filter(s=>!q||s.t.toLowerCase().includes(q)||s.n.toLowerCase().includes(q)||s.s.toLowerCase().includes(q));
+ document.getElementById("cmpHint").textContent=cmpSel.length>=4?"Maksimal 4 saham. Hapus salah satu untuk mengganti.":"Pilih hingga "+(4-cmpSel.length)+" saham lagi.";
+ document.getElementById("cmpList").innerHTML=list.length?list.map(s=>{const sel=cmpSel.includes(s.t);return `<button class="cmp-item ${sel?"sel":""}" onclick="toggleCmp('${s.t}')"><div class="bd">${s.t.slice(0,2)}</div><div class="mid"><strong>${s.t}</strong><span>${s.n} • ${s.s}</span></div><div class="rt">${sel?"✓ Dipilih":"Rp "+s.p.toLocaleString("id-ID")}</div></button>`}).join(""):`<div class="cmp-hint">Saham tidak ditemukan.</div>`;
+}
+function toggleCmp(t){
+ const i=cmpSel.indexOf(t);
+ if(i>=0){if(cmpSel.length>1)cmpSel.splice(i,1)}
+ else if(cmpSel.length<4)cmpSel.push(t);
+ renderCompare();
+ if(!document.getElementById("cmpSheet").classList.contains("hidden"))renderCmpList();
+}
+function openCmpSheet(){document.getElementById("cmpSearch").value="";document.getElementById("cmpSheet").classList.remove("hidden");renderCmpList()}
+function closeCmpSheet(){document.getElementById("cmpSheet").classList.add("hidden")}
+function renderCompare(){renderCmpChips();renderCmpChart();renderCmpTable()}
+(function(){
+ const svg=document.getElementById("cmpChart");
+ svg.addEventListener("pointermove",cmpHover);
+ svg.addEventListener("pointerdown",cmpHover);
+ svg.addEventListener("pointerleave",cmpLeave);
+ document.getElementById("cmpPeriods").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#cmpPeriods button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");cmpPeriod=+b.dataset.k;renderCmpChart();
+ });
+ document.getElementById("cmpSearch").addEventListener("input",renderCmpList);
+ window.addEventListener("resize",()=>{if(!document.getElementById("compare").classList.contains("hidden"))renderCmpChart()});
+})();
+
+/* ===== Screener gaya aplikasi saham ===== */
+const scrExtra={
+ BBCA:{inf:182,vm:142,liq:1820,ma:"Harga > MA20 > MA50"},
+ BBRI:{inf:124,vm:168,liq:1240,ma:"Harga > MA20 > MA50"},
+ BMRI:{inf:96,vm:131,liq:980,ma:"Harga > MA20 > MA50"},
+ BBNI:{inf:-22,vm:92,liq:410,ma:"Harga < MA20"},
+ TLKM:{inf:86,vm:126,liq:685,ma:"Harga > MA20"},
+ ASII:{inf:61,vm:118,liq:512,ma:"Harga > MA20"},
+ UNVR:{inf:-58,vm:104,liq:230,ma:"Harga < MA20 < MA50"},
+ ICBP:{inf:34,vm:112,liq:190,ma:"Harga > MA20"},
+ MDKA:{inf:74,vm:154,liq:486,ma:"Harga > MA20 > MA50"},
+ ADRO:{inf:68,vm:139,liq:540,ma:"Harga > MA20 > MA50"},
+ PGAS:{inf:48,vm:137,liq:260,ma:"Harga > MA20 > MA50"},
+ MEDC:{inf:41,vm:148,liq:300,ma:"Harga > MA20 > MA50"}
+};
+stockDB.forEach(s=>Object.assign(s,scrExtra[s.t]||{}));
+stockDB.push(
+ {t:"KLBF",n:"Kalbe Farma",s:"Kesehatan",p:1450,mc:68,per:17.2,pbv:2.6,dy:3.0,roe:15.1,eps:8.2,der:0.18,rsi:49,tr:"Netral",r:-3,v:0.9,inf:12,vm:98,liq:150,ma:"Harga ≈ MA20"},
+ {t:"INDF",n:"Indofood Sukses Makmur",s:"Barang Konsumsi",p:7300,mc:64,per:6.9,pbv:0.9,dy:4.4,roe:13.2,eps:9.6,der:0.72,rsi:56,tr:"Bullish",r:10,v:1.0,inf:22,vm:115,liq:110,ma:"Harga > MA20"},
+ {t:"CPIN",n:"Charoen Pokphand Indonesia",s:"Barang Konsumsi",p:4750,mc:78,per:22.4,pbv:2.9,dy:2.4,roe:13.1,eps:6.9,der:0.42,rsi:51,tr:"Netral",r:1,v:1.0,inf:6,vm:102,liq:90,ma:"Harga ≈ MA20"},
+ {t:"SMGR",n:"Semen Indonesia",s:"Material Dasar",p:3050,mc:21,per:14.8,pbv:0.6,dy:2.1,roe:4.1,eps:-6.5,der:0.62,rsi:38,tr:"Bearish",r:-18,v:1.1,inf:-31,vm:134,liq:95,ma:"Harga < MA20 < MA50"},
+ {t:"UNTR",n:"United Tractors",s:"Pertambangan",p:27500,mc:102,per:6.2,pbv:1.3,dy:8.2,roe:21.0,eps:7.4,der:0.31,rsi:57,tr:"Bullish",r:13,v:1.0,inf:39,vm:121,liq:220,ma:"Harga > MA20 > MA50"},
+ {t:"PTBA",n:"Bukit Asam",s:"Pertambangan",p:2700,mc:31,per:7.4,pbv:1.7,dy:11.8,roe:22.8,eps:-4.2,der:0.38,rsi:52,tr:"Netral",r:4,v:1.3,inf:18,vm:109,liq:140,ma:"Harga > MA20"},
+ {t:"ANTM",n:"Aneka Tambang",s:"Pertambangan",p:2950,mc:71,per:13.6,pbv:1.9,dy:2.8,roe:14.4,eps:31.5,der:0.45,rsi:65,tr:"Bullish",r:32,v:1.6,inf:88,vm:171,liq:620,ma:"Harga > MA20 > MA50"},
+ {t:"AMRT",n:"Sumber Alfaria Trijaya",s:"Ritel",p:2420,mc:100,per:28.9,pbv:7.4,dy:0.6,roe:28.1,eps:19.2,der:1.1,rsi:59,tr:"Bullish",r:15,v:0.9,inf:45,vm:128,liq:175,ma:"Harga > MA20 > MA50"},
+ {t:"ISAT",n:"Indosat Ooredoo Hutchison",s:"Telekomunikasi",p:2350,mc:76,per:24.6,pbv:3.1,dy:2.9,roe:13.4,eps:18.8,der:1.3,rsi:44,tr:"Netral",r:-4,v:1.1,inf:-12,vm:96,liq:120,ma:"Harga < MA20"},
+ {t:"EXCL",n:"XLSMART Telecom",s:"Telekomunikasi",p:2280,mc:30,per:22.1,pbv:1.5,dy:1.8,roe:7.8,eps:4.2,der:1.9,rsi:36,tr:"Bearish",r:-16,v:1.2,inf:-27,vm:101,liq:85,ma:"Harga < MA20 < MA50"},
+ {t:"BSDE",n:"Bumi Serpong Damai",s:"Properti",p:1020,mc:22,per:6.9,pbv:0.6,dy:0,roe:8.9,eps:14.8,der:0.31,rsi:62,tr:"Bullish",r:21,v:1.3,inf:29,vm:145,liq:130,ma:"Harga > MA20 > MA50"},
+ {t:"GOTO",n:"GoTo Gojek Tokopedia",s:"Teknologi",p:62,mc:74,per:0,pbv:1.6,dy:0,roe:-8.4,eps:24.6,der:0.08,rsi:45,tr:"Netral",r:-9,v:1.7,inf:-35,vm:160,liq:340,ma:"Harga < MA20"},
+ {t:"MTDL",n:"Metrodata Electronics",s:"Teknologi",p:690,mc:2,per:14.8,pbv:1.4,dy:3.2,roe:15.4,eps:12.6,der:0.55,rsi:60,tr:"Bullish",r:22,v:1.4,inf:8,vm:133,liq:22,ma:"Harga > MA20 > MA50"}
+);
+
+const scrFields=[
+ {k:"per",l:"PER",u:"x",g:"Valuasi"},
+ {k:"pbv",l:"PBV",u:"x",g:"Valuasi"},
+ {k:"dy",l:"Dividend yield",u:"%",g:"Valuasi"},
+ {k:"roe",l:"ROE",u:"%",g:"Profitabilitas"},
+ {k:"eps",l:"Growth EPS",u:"%",g:"Profitabilitas"},
+ {k:"der",l:"DER",u:"x",g:"Risiko"},
+ {k:"rsi",l:"RSI (14)",u:"",g:"Teknikal & arus dana"},
+ {k:"vm",l:"Volume vs MA20 (%)",u:"%",g:"Teknikal & arus dana"},
+ {k:"inf",l:"Inflow 1 minggu (Rp M)",u:" M",g:"Teknikal & arus dana"},
+ {k:"r1m",l:"Kinerja 1 bulan (%)",u:"%",g:"Harga"},
+ {k:"p",l:"Harga (Rp)",u:"",g:"Harga"}
+];
+const scrSortOpts=[["inf","Inflow 1 minggu"],["r1m","Kinerja 1 bulan"],["roe","ROE"],["dy","Dividend yield"],["per","PER"],["pbv","PBV"],["eps","Growth EPS"],["vm","Volume vs MA20"],["rsi","RSI"],["mc","Kapitalisasi"],["p","Harga"]];
+const scrPresets={
+ all:{label:"Semua",set:{},sort:["inf",-1]},
+ inflow:{label:"💧 Inflow Tertinggi",set:{inf:[50,""],vm:[120,""]},sort:["inf",-1]},
+ value:{label:"💎 Value",set:{per:[0.1,12],pbv:["",1.5],roe:[10,""]},sort:["per",1]},
+ dividen:{label:"💰 Dividen Tinggi",set:{dy:[5,""]},sort:["dy",-1]},
+ growth:{label:"🚀 Growth",set:{eps:[15,""],roe:[12,""]},sort:["eps",-1]},
+ bullish:{label:"📈 Bullish",trend:"Bullish",set:{rsi:[50,70],vm:[110,""]},sort:["vm",-1]},
+ oversold:{label:"🪃 Oversold",set:{rsi:["",45]},sort:["rsi",1]},
+ quality:{label:"🏆 Kualitas",set:{roe:[18,""],der:["",0.6]},sort:["roe",-1]}
+};
+const mcLabels={all:"Semua",besar:"Besar (≥ 100 T)",menengah:"Menengah (20–100 T)",kecil:"Kecil (< 20 T)"};
+function scrBlank(){const rng={};scrFields.forEach(f=>rng[f.k]=["",""]);return {q:"",sectors:[],mc:"all",trend:"all",rng,preset:"all",sort:"inf",dir:-1}}
+let scr=scrBlank(),scrDraft=null;
+const scrOpen=new Set();
+function scrVal(s,k){if(k==="r1m"){if(s._r1m===undefined)s._r1m=perf(s,21);return s._r1m}return s[k]}
+function scrFmt(k,v){
+ switch(k){
+  case"per":return v>0?fmt(v)+"x":"N/A";
+  case"pbv":return fmt(v)+"x";
+  case"der":return fmt(v,2)+"x";
+  case"roe":case"dy":return fmt(v)+"%";
+  case"eps":case"r1m":return pct(v);
+  case"rsi":return fmt(v);
+  case"vm":return Math.round(v)+"%";
+  case"inf":return (v>0?"+":"")+v.toLocaleString("id-ID")+" M";
+  case"p":return "Rp "+v.toLocaleString("id-ID");
+  case"mc":return "Rp "+fmt(v,v<10?1:0)+" T";
+ }
+ return v;
+}
+function scrCls(k,v){return (k==="eps"||k==="r1m"||k==="inf")?(v>=0?"up":"down"):""}
+function scrLabel(k){const f=scrFields.find(x=>x.k===k);if(f)return f.l.replace(/ \(.*\)/,"");return (scrSortOpts.find(o=>o[0]===k)||[k,k])[1]}
+function scrFilter(st){
+ const q=st.q.trim().toLowerCase();
+ return stockDB.filter(s=>{
+  if(q&&!(s.t.toLowerCase().includes(q)||s.n.toLowerCase().includes(q)))return false;
+  if(st.sectors.length&&!st.sectors.includes(s.s))return false;
+  if(st.mc!=="all"){const b=s.mc>=100?"besar":s.mc>=20?"menengah":"kecil";if(b!==st.mc)return false}
+  if(st.trend!=="all"&&s.tr!==st.trend)return false;
+  for(const f of scrFields){
+   const mn=st.rng[f.k][0],mx=st.rng[f.k][1];
+   if(mn===""&&mx==="")continue;
+   const v=scrVal(s,f.k);
+   if(f.k==="per"&&!(v>0))return false;
+   if(mn!==""&&v<+mn)return false;
+   if(mx!==""&&v>+mx)return false;
+  }
+  return true;
+ });
+}
+function scrIsBlank(st){return !st.sectors.length&&st.mc==="all"&&st.trend==="all"&&scrFields.every(f=>st.rng[f.k][0]===""&&st.rng[f.k][1]==="")}
+function scrActiveTags(st){
+ const out=[];
+ st.sectors.forEach(x=>out.push({l:x,a:`scrRemove('sector','${x}')`}));
+ if(st.mc!=="all")out.push({l:"Kapitalisasi: "+mcLabels[st.mc].split(" ")[0],a:"scrRemove('mc')"});
+ if(st.trend!=="all")out.push({l:"Tren: "+st.trend,a:"scrRemove('trend')"});
+ scrFields.forEach(f=>{
+  const mn=st.rng[f.k][0],mx=st.rng[f.k][1];
+  if(mn===""&&mx==="")return;
+  const name=f.l.replace(/ \(.*\)/,"");
+  const t=mn!==""&&mx!==""?`${mn}–${mx}`:mn!==""?`≥ ${mn}`:`≤ ${mx}`;
+  out.push({l:`${name} ${t}${f.u}`,a:`scrRemove('rng','${f.k}')`});
+ });
+ return out;
+}
+function scrRemove(type,key){
+ if(type==="sector")scr.sectors=scr.sectors.filter(x=>x!==key);
+ else if(type==="mc")scr.mc="all";
+ else if(type==="trend")scr.trend="all";
+ else scr.rng[key]=["",""];
+ scr.preset=scrIsBlank(scr)?"all":"custom";
+ renderScreener();
+}
+function scrClearAll(){const q=scr.q;scr=scrBlank();scr.q=q;renderScreener()}
+function scrPreset(id){
+ const q=scr.q,p=scrPresets[id];
+ scr=scrBlank();scr.q=q;scr.preset=id;
+ if(p.trend)scr.trend=p.trend;
+ for(const k in p.set)scr.rng[k]=p.set[k].map(String);
+ scr.sort=p.sort[0];scr.dir=p.sort[1];
+ renderScreener();
+}
+function scrSetSort(k){scr.sort=k;renderScreener()}
+function scrToggleDir(){scr.dir*=-1;renderScreener()}
+function scrToggleRow(t){if(scrOpen.has(t))scrOpen.delete(t);else scrOpen.add(t);renderScreenerList()}
+let _scrToastT=null;
+function scrNotify(msg){
+ const el=document.getElementById("scrToast");el.textContent=msg;el.classList.remove("hidden");
+ clearTimeout(_scrToastT);_scrToastT=setTimeout(()=>el.classList.add("hidden"),1800);
+}
+function scrCompareToggle(t){
+ const i=cmpSel.indexOf(t);
+ if(i>=0){
+  if(cmpSel.length<=1){scrNotify("Banding minimal berisi 1 saham");return}
+  cmpSel.splice(i,1);scrNotify(t+" dihapus dari Banding");
+ }else{
+  if(cmpSel.length>=4){scrNotify("Banding penuh (maksimal 4 saham)");return}
+  cmpSel.push(t);scrNotify(t+" ditambahkan ke Banding");
+ }
+ renderCompare();renderScreenerList();
+}
+function scrRowHtml(s,sortKey){
+ let keys=["per","roe","dy","inf"];
+ if(!keys.includes(sortKey))keys[3]=sortKey;
+ const r1m=scrVal(s,"r1m"),open=scrOpen.has(s.t),inCmp=cmpSel.includes(s.t);
+ const cells=keys.map(k=>{const v=scrVal(s,k);return `<div class="scr-m ${k===sortKey?"hl":""}"><small>${scrLabel(k)}</small><strong class="${scrCls(k,v)}">${scrFmt(k,v)}</strong></div>`}).join("");
+ const det=[["Kapitalisasi","mc"],["PBV","pbv"],["DER","der"],["Growth EPS","eps"],["RSI (14)","rsi"],["Vol vs MA20","vm"],["Inflow 1 mgg","inf"],["Kinerja 1 bln","r1m"]].map(([l,k])=>{const v=scrVal(s,k);return `<div><span>${l}</span><b class="${scrCls(k,v)}">${scrFmt(k,v)}</b></div>`}).join("");
+ return `<article class="screen-card scr-row" onclick="scrToggleRow('${s.t}')">
+ <div class="screen-top"><div class="screen-badge">${s.t.slice(0,2)}</div><div class="screen-info"><strong>${s.t}</strong><span>${s.n} • ${s.s}</span></div><div class="scr-price"><strong>Rp ${s.p.toLocaleString("id-ID")}</strong><span class="${r1m>=0?"up":"down"}">${pct(r1m)} 1B</span></div></div>
+ <div class="scr-metrics">${cells}</div>
+ ${open?`<div class="scr-detail"><div class="scr-detail-grid">${det}<div><span>Tren</span><b class="${s.tr==="Bullish"?"up":s.tr==="Bearish"?"down":""}">${s.tr}</b></div><div><span>Likuiditas/hari</span><b>Rp ${s.liq.toLocaleString("id-ID")} M</b></div></div><div style="margin-top:9px;font-size:11.5px;color:var(--muted)">Posisi MA: ${s.ma}</div><div class="scr-actions"><button class="scr-btn-a" onclick="event.stopPropagation();scrCompareToggle('${s.t}')">${inCmp?"✓ Di Banding":"⚖️ Tambah ke Banding"}</button><button class="scr-btn-b" onclick="event.stopPropagation();showCompare()">Buka Banding</button></div></div>`:""}
+ </article>`;
+}
+function renderScreenerList(){
+ const k=scr.sort;
+ const rows=scrFilter(scr).map(s=>[s,scrVal(s,k)]);
+ rows.sort((a,b)=>{
+  if(k==="per"){const an=!(a[1]>0),bn=!(b[1]>0);if(an!==bn)return an?1:-1}
+  return (a[1]-b[1])*scr.dir||a[0].t.localeCompare(b[0].t);
+ });
+ document.getElementById("scrCount").innerHTML=`<b>${rows.length}</b> dari ${stockDB.length} saham`;
+ document.getElementById("screenerList").innerHTML=rows.length?rows.map(r=>scrRowHtml(r[0],k)).join(""):`<div class="scr-empty">Tidak ada saham yang cocok dengan kriteria ini.<br>Coba longgarkan salah satu filter.<br><button class="primary-btn" onclick="scrClearAll()">Hapus semua filter</button></div>`;
+}
+function renderScreener(){
+ document.getElementById("scrPresets").innerHTML=Object.keys(scrPresets).map(id=>`<button class="screen-chip ${scr.preset===id?"active":""}" onclick="scrPreset('${id}')">${scrPresets[id].label}</button>`).join("");
+ const tags=scrActiveTags(scr);
+ document.getElementById("scrActive").innerHTML=tags.map(t=>`<div class="scr-tag">${t.l}<button onclick="${t.a}" aria-label="Hapus filter">✕</button></div>`).join("")+(tags.length>1?`<div class="scr-tag clear" onclick="scrClearAll()">Hapus semua</div>`:"");
+ const b=document.getElementById("scrBadge");b.textContent=tags.length;b.classList.toggle("hidden",!tags.length);
+ document.getElementById("scrSort").innerHTML=scrSortOpts.map(o=>`<option value="${o[0]}" ${o[0]===scr.sort?"selected":""}>${o[1]}</option>`).join("");
+ document.getElementById("scrDir").textContent=scr.dir===-1?"↓":"↑";
+ renderScreenerList();
+}
+/* panel filter */
+function renderScrSheet(){
+ const d=scrDraft;
+ const sectors=[...new Set(stockDB.map(s=>s.s))].sort();
+ let h=`<div class="scr-sec"><h4>Sektor</h4><div class="scr-chips">${sectors.map(x=>`<button class="scr-chip ${d.sectors.includes(x)?"on":""}" onclick="scrDraftSector('${x}')">${x}</button>`).join("")}</div></div>`;
+ h+=`<div class="scr-sec"><h4>Kapitalisasi pasar</h4><div class="scr-chips">${Object.keys(mcLabels).map(x=>`<button class="scr-chip ${d.mc===x?"on":""}" onclick="scrDraftSet('mc','${x}')">${mcLabels[x]}</button>`).join("")}</div></div>`;
+ h+=`<div class="scr-sec"><h4>Tren teknikal</h4><div class="scr-chips">${["all","Bullish","Netral","Bearish"].map(x=>`<button class="scr-chip ${d.trend===x?"on":""}" onclick="scrDraftSet('trend','${x}')">${x==="all"?"Semua":x}</button>`).join("")}</div></div>`;
+ let g="";
+ scrFields.forEach(f=>{
+  if(f.g!==g){if(g)h+="</div>";h+=`<div class="scr-sec"><h4>${f.g}</h4>`;g=f.g}
+  const mn=d.rng[f.k][0],mx=d.rng[f.k][1];
+  h+=`<div class="scr-rng"><label>${f.l}</label><input type="number" inputmode="decimal" step="any" placeholder="Min" value="${mn}" oninput="scrDraftRange('${f.k}',0,this.value)"><span>–</span><input type="number" inputmode="decimal" step="any" placeholder="Maks" value="${mx}" oninput="scrDraftRange('${f.k}',1,this.value)"></div>`;
+ });
+ h+="</div>";
+ document.getElementById("scrBody").innerHTML=h;
+ scrUpdateApply();
+}
+function scrUpdateApply(){
+ const n=scrFilter(scrDraft).length;
+ document.getElementById("scrApply").textContent=n?`Tampilkan ${n} saham`:"Tidak ada saham cocok";
+}
+function scrDraftSector(x){const a=scrDraft.sectors,i=a.indexOf(x);if(i>=0)a.splice(i,1);else a.push(x);scrDraft.preset="custom";renderScrSheet()}
+function scrDraftSet(k,v){scrDraft[k]=v;scrDraft.preset="custom";renderScrSheet()}
+function scrDraftRange(k,i,v){scrDraft.rng[k][i]=v;scrDraft.preset="custom";scrUpdateApply()}
+function scrDraftReset(){const q=scrDraft.q;scrDraft=scrBlank();scrDraft.q=q;scrDraft.sort=scr.sort;scrDraft.dir=scr.dir;renderScrSheet()}
+function openScrSheet(){scrDraft=JSON.parse(JSON.stringify(scr));renderScrSheet();document.getElementById("scrSheet").classList.remove("hidden")}
+function closeScrSheet(){document.getElementById("scrSheet").classList.add("hidden")}
+function scrApply(){
+ const q=scr.q;scr=scrDraft;scr.q=q;
+ if(scrIsBlank(scr))scr.preset="all";
+ closeScrSheet();renderScreener();window.scrollTo(0,0);
+}
+document.getElementById("scrSearch").addEventListener("input",e=>{scr.q=e.target.value;renderScreenerList()});
+
+function showCompare(){document.getElementById("home").classList.add("hidden");document.getElementById("news").classList.add("hidden");document.getElementById("riset").classList.add("hidden");document.getElementById("screener").classList.add("hidden");document.getElementById("compare").classList.remove("hidden");requestAnimationFrame(renderCompare);document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));document.getElementById("compareNav").classList.add("active");window.scrollTo(0,0)}
+function showScreener(){document.getElementById("home").classList.add("hidden");document.getElementById("news").classList.add("hidden");document.getElementById("riset").classList.add("hidden");document.getElementById("compare").classList.add("hidden");document.getElementById("screener").classList.remove("hidden");document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));document.getElementById("screenerNav").classList.add("active");window.scrollTo(0,0)}
+function showNews(){document.getElementById("home").classList.add("hidden");document.getElementById("riset").classList.add("hidden");document.getElementById("screener").classList.add("hidden");document.getElementById("compare").classList.add("hidden");document.getElementById("news").classList.remove("hidden");document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));document.getElementById("newsNav").classList.add("active");window.scrollTo(0,0)}
+function showRiset(){document.getElementById("home").classList.add("hidden");document.getElementById("news").classList.add("hidden");document.getElementById("screener").classList.add("hidden");document.getElementById("compare").classList.add("hidden");document.getElementById("riset").classList.remove("hidden");document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));document.getElementById("risetNav").classList.add("active");window.scrollTo(0,0)}
+function showHome(){document.getElementById("news").classList.add("hidden");document.getElementById("riset").classList.add("hidden");document.getElementById("screener").classList.add("hidden");document.getElementById("compare").classList.add("hidden");document.getElementById("home").classList.remove("hidden");document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));document.getElementById("homeNav").classList.add("active");window.scrollTo(0,0)}
+document.getElementById("homeNav").addEventListener("click",showHome);
+document.getElementById("newsNav").addEventListener("click",showNews);
+document.getElementById("risetNav").addEventListener("click",showRiset);
+document.getElementById("screenerNav").addEventListener("click",showScreener);
+document.getElementById("compareNav").addEventListener("click",showCompare);
+document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>{if(["newsNav","risetNav","screenerNav","compareNav"].includes(b.id))return;document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));b.classList.add("active")}));
+renderNews();renderRiset();renderScreener();renderCompare();updateSlider();
+</script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<title>Kedalaman Pasar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: top title bar, one page at a time (hash routed), fixed bottom menu with 5 destinations; stock page holds market depth. */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --fg:#14201c; --muted:#5f6f68; --line:#dfe4e0;
+  --bid:#0b8a5a; --bid-soft:rgba(11,138,90,.16); --ask:#c93a3a; --ask-soft:rgba(201,58,58,.15);
+  --accent:#1f4fd8; --on-accent:#ffffff; --chip:#e9edea;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1412; --surface:#141d1a; --fg:#e8efec; --muted:#8fa299; --line:#25322d;
+  --bid:#2fcf94; --bid-soft:rgba(47,207,148,.18); --ask:#ff6b6b; --ask-soft:rgba(255,107,107,.17);
+  --accent:#7ea2ff; --on-accent:#0d1412; --chip:#1d2a26; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0d1412; --surface:#141d1a; --fg:#e8efec; --muted:#8fa299; --line:#25322d;
+  --bid:#2fcf94; --bid-soft:rgba(47,207,148,.18); --ask:#ff6b6b; --ask-soft:rgba(255,107,107,.17);
+  --accent:#7ea2ff; --on-accent:#0d1412; --chip:#1d2a26; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans);
+  padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:14px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+h1{font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12px}
+.top{display:flex;align-items:center;gap:10px;min-height:34px}
+.top .back{display:none;padding:6px 10px;border-radius:6px;background:var(--chip)}
+.top .grow{flex:1;min-width:0}
+button{font:inherit;color:var(--fg);background:var(--chip);border:1px solid transparent;border-radius:6px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--line)}
+button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.ph h2{font-size:12px;margin:0;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.up{color:var(--bid)} .dn{color:var(--ask)}
+.note{color:var(--muted);font-size:12px}
+.xs{overflow-x:auto}
+.grid2{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:820px){.grid2{grid-template-columns:1fr 1fr}.grid-stock{grid-template-columns:1.5fr 1fr}}
+
+/* Bottom menu */
+nav.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:20;
+  padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+nav.bar .in{max-width:1040px;margin:0 auto;display:flex;gap:4px}
+nav.bar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:8px;color:var(--muted);font-size:11px;font-weight:500}
+nav.bar a svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.bar a[aria-current="page"]{color:var(--accent);background:var(--chip)}
+
+/* Lists */
+.item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.item:last-child{border:0}
+.item .main{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 14px;align-items:center;padding:10px 0}
+.item b{font-weight:600}
+.item .nm{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-block;min-width:74px;text-align:right;padding:2px 7px;border-radius:5px;font-size:12.5px}
+.pill.up{background:var(--bid-soft)} .pill.dn{background:var(--ask-soft)}
+.star{padding:4px 8px;font-size:16px;line-height:1;background:transparent;color:var(--muted)}
+.star[aria-pressed="true"]{background:transparent;color:#d9a300}
+
+/* Home / portfolio */
+.big{font-size:30px;font-weight:600;line-height:1.1}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px 18px}
+.stat small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.stat b{font-weight:500;font-size:15px}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:4px 8px;text-align:right}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t td{padding:8px;text-align:right;border-top:1px solid var(--line);font-family:var(--mono);font-variant-numeric:tabular-nums}
+table.t td:first-child{font-family:var(--sans);font-weight:600}
+
+/* Settings rows */
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.set:last-child{border:0}
+.set small{display:block;color:var(--muted);font-size:12px}
+.sw{width:42px;height:24px;border-radius:12px;background:var(--chip);border:1px solid var(--line);padding:0;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .15s}
+.sw[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.sw[aria-pressed="true"]::after{transform:translateX(18px);background:var(--on-accent)}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:600;font-size:18px;flex:none}
+
+.bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%}
+.srow{padding:8px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border:0}
+.srow>div:first-child{display:flex;justify-content:space-between}
+.news{display:block;padding:12px 0;border-bottom:1px solid var(--line)}
+.news:last-child{border:0}
+.news b{display:block;font-weight:600;margin-bottom:4px}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:var(--chip);color:var(--muted);margin-left:4px}
+.article h2{font-size:20px;line-height:1.25;margin:0 0 6px;font-weight:600;text-wrap:balance}
+.article p{max-width:65ch;margin:0 0 12px}
+.article .sub{margin-bottom:14px}
+table.t td a{text-decoration:underline;text-underline-offset:3px}
+
+/* Stock page */
+.strip{display:grid;grid-template-columns:auto 1fr;gap:12px 24px;align-items:end}
+.price{font-size:34px;font-weight:600;line-height:1.1}
+.chg{font-size:14px;margin-left:8px}
+.imb{height:8px;border-radius:4px;background:var(--ask-soft);overflow:hidden;margin-top:6px;display:flex}
+.imb i{display:block;background:var(--bid);height:100%;transition:width .4s}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{padding:3px 9px;font-size:12px}
+svg.depth{width:100%;height:auto;display:block;touch-action:none}
+svg.depth text{fill:var(--muted);font:11px var(--mono)}
+.axis{stroke:var(--line);stroke-width:1}
+.bidA{fill:var(--bid-soft);stroke:var(--bid);stroke-width:1.6}
+.askA{fill:var(--ask-soft);stroke:var(--ask);stroke-width:1.6}
+.cross{stroke:var(--muted);stroke-dasharray:3 3}
+.tip{min-height:20px;font-size:12px;color:var(--muted);margin-top:6px}
+.ladder{width:100%;border-collapse:collapse;font-size:13px}
+.ladder th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:4px 8px;text-align:right}
+.ladder td{padding:3px 8px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ladder td.b{background:linear-gradient(to left,var(--bid-soft) var(--w),transparent var(--w))}
+.ladder td.a{background:linear-gradient(to right,var(--ask-soft) var(--w),transparent var(--w))}
+.ladder td.a:nth-child(3),.ladder th:nth-child(3){text-align:left}
+.ladder td.pb{color:var(--bid);font-weight:600}.ladder td.pa{color:var(--ask);font-weight:600}
+.tape{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.tape li{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.tape li:last-child{border:0}
+.tape .t{color:var(--muted)}
+@media(max-width:520px){.strip{grid-template-columns:1fr}.price{font-size:30px}.big{font-size:26px}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <a class="back" id="back" href="#pasar">← Pasar</a>
+    <div class="grow"><h1 id="title">Beranda</h1><div class="sub" id="subt">Data simulasi, bukan harga nyata.</div></div>
+    <button class="star" id="starTop" aria-pressed="false" aria-label="Tambah ke watchlist" hidden>★</button>
+  </div>
+
+  <!-- BERANDA -->
+  <main id="v-beranda" class="grid2" style="align-items:start">
+    <section class="panel" style="grid-column:1/-1">
+      <div class="sub">IHSG (simulasi)</div>
+      <div><span class="big num" id="ihsg"></span><span class="chg num" id="ihsgc"></span></div>
+    </section>
+    <section class="panel"><div class="ph"><h2>Naik terbanyak</h2></div><div id="gain"></div></section>
+    <section class="panel"><div class="ph"><h2>Turun terbanyak</h2></div><div id="lose"></div></section>
+  </main>
+
+  <!-- PASAR -->
+  <main id="v-pasar" hidden>
+    <section class="panel"><div class="ph"><h2>Daftar saham</h2><span class="note">Ketuk saham untuk melihat market depth</span></div><div id="market"></div></section>
+  </main>
+
+  <!-- WATCHLIST -->
+  <main id="v-watchlist" hidden>
+    <section class="panel"><div class="ph"><h2>Saham pantauan</h2></div><div id="watch"></div></section>
+  </main>
+
+  <!-- RISET -->
+  <main id="v-riset" hidden class="grid2" style="align-items:start">
+    <section class="panel"><div class="ph"><h2>Lebar pasar</h2></div><div id="breadth"></div></section>
+    <section class="panel"><div class="ph"><h2>Kinerja sektor</h2></div><div id="sector"></div></section>
+    <section class="panel" style="grid-column:1/-1">
+      <div class="ph"><h2>Level dari order book</h2><span class="note">Tembok = level dengan lot terbesar di 15 level teratas</span></div>
+      <div class="xs"><table class="t"><thead><tr><th>Saham</th><th>Harga</th><th>Tembok bid</th><th>Tembok offer</th><th>Tekanan beli</th></tr></thead><tbody id="walls"></tbody></table></div>
+    </section>
+  </main>
+
+  <!-- BERITA -->
+  <main id="v-berita" hidden>
+    <section class="panel"><div class="ph"><h2>Berita pasar</h2><span class="note">Contoh tampilan, bukan berita sungguhan</span></div><div id="newslist"></div></section>
+  </main>
+
+  <!-- ARTIKEL -->
+  <main id="v-artikel" hidden class="grid2" style="align-items:start">
+    <section class="panel article" id="art"></section>
+    <section class="panel"><div class="ph"><h2>Saham terkait</h2></div><div id="artstocks"></div></section>
+  </main>
+
+  <!-- HALAMAN SAHAM -->
+  <main id="v-saham" hidden class="wrap">
+    <section class="panel strip">
+      <div>
+        <div class="sub" id="nm"></div>
+        <div><span class="price num" id="last"></span><span class="chg num" id="chg"></span></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><small>Spread</small><b class="num" id="spr"></b></div>
+        <div class="stat"><small>Total bid</small><b class="num up" id="tb"></b></div>
+        <div class="stat"><small>Total offer</small><b class="num dn" id="ta"></b></div>
+        <div class="stat" style="min-width:140px"><small>Tekanan beli <span class="num" id="imbv"></span></small><div class="imb"><i id="imbbar" style="width:50%"></i></div></div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="ph">
+        <h2>Market depth (lot kumulatif)</h2>
+        <div class="seg" id="lvl" role="group" aria-label="Jumlah level">
+          <button data-n="5" aria-pressed="false">5</button>
+          <button data-n="10" aria-pressed="true">10</button>
+          <button data-n="15" aria-pressed="false">15</button>
+          <button id="pause" aria-pressed="false" style="margin-left:8px">Jeda</button>
+        </div>
+      </div>
+      <svg id="chart" class="depth" viewBox="0 0 640 250" role="img" aria-label="Grafik kedalaman order book"></svg>
+      <div class="tip" id="tip">Sentuh atau arahkan kursor ke grafik untuk melihat lot kumulatif per harga.</div>
+    </section>
+    <div class="grid2 grid-stock" style="align-items:start">
+      <section class="panel">
+        <div class="ph"><h2>Order book</h2><span class="note">1 lot = 100 lembar</span></div>
+        <div class="xs"><table class="ladder"><thead><tr><th>Lot</th><th>Bid</th><th>Offer</th><th>Lot</th></tr></thead><tbody id="ladder"></tbody></table></div>
+      </section>
+      <section class="panel"><div class="ph"><h2>Transaksi terakhir</h2></div><ul class="tape" id="tape"></ul></section>
+    </div>
+    <p class="note">Harga mengikuti fraksi harga BEI: Rp1 di bawah 200, Rp5 untuk 200 sampai di bawah 500, Rp10 untuk 500 sampai di bawah 2.000, Rp25 untuk 2.000 sampai di bawah 5.000, Rp50 untuk 5.000 ke atas.</p>
+  </main>
+</div>
+
+<nav class="bar" aria-label="Menu utama"><div class="in">
+  <a href="#beranda" data-nav="beranda"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Beranda</a>
+  <a href="#pasar" data-nav="pasar"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Pasar</a>
+  <a href="#watchlist" data-nav="watchlist"><svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>Watchlist</a>
+  <a href="#riset" data-nav="riset"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.2-4.2"/></svg>Riset</a>
+  <a href="#berita" data-nav="berita"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Berita</a>
+</div></nav>
+
+<script>
+(function(){
+  var fmt=new Intl.NumberFormat('id-ID');
+  function pc(x){return (x>=0?'+':'')+x.toFixed(2).replace('.',',')+'%'}
+  function tickFor(p){return p<200?1:p<500?5:p<2000?10:p<5000?25:50}
+  function up(p){return p+tickFor(p)}
+  function down(p){return p-tickFor(p-1)}
+  function rlot(){return Math.round(30+Math.pow(Math.random(),2.2)*1200)}
+
+  var DEF={
+    BBCA:{n:'Bank Central Asia',p:8650},
+    BBRI:{n:'Bank Rakyat Indonesia',p:3980},
+    TLKM:{n:'Telkom Indonesia',p:3150},
+    ASII:{n:'Astra International',p:4700},
+    GOTO:{n:'GoTo Gojek Tokopedia',p:68}
+  };
+  var S={};
+  Object.keys(DEF).forEach(function(k){
+    S[k]={n:DEF[k].n,bid:DEF[k].p,gap:1,q:new Map(),last:up(DEF[k].p),open:DEF[k].p,trades:[]};
+  });
+  var ihsg={v:7250.4,open:7250.4};
+  var watch={BBCA:1,GOTO:1};
+  var view='beranda',cur='BBCA',N=10,paused=false;
+
+  function lot(s,p){if(!s.q.has(p))s.q.set(p,rlot());return s.q.get(p)}
+  function book(s,n){
+    var bids=[],asks=[],p=s.bid,i;
+    for(i=0;i<n;i++){bids.push({p:p,q:lot(s,p)});p=down(p)}
+    p=s.bid;for(i=0;i<s.gap;i++)p=up(p);
+    for(i=0;i<n;i++){asks.push({p:p,q:lot(s,p)});p=up(p)}
+    return{bids:bids,asks:asks};
+  }
+  function stamp(){return new Date().toLocaleTimeString('id-ID',{hour12:false}).replace(/\./g,':')}
+  function step(s){
+    var b=book(s,15),i;
+    for(i=0;i<3;i++){
+      var side=Math.random()<.5?b.bids:b.asks,lv=side[Math.floor(Math.random()*side.length)];
+      s.q.set(lv.p,Math.max(5,Math.round(lv.q+(Math.random()-.45)*lv.q*.5)));
+    }
+    if(Math.random()<.14){s.bid=Math.random()<.5?up(s.bid):down(s.bid)}
+    if(Math.random()<.1)s.gap=Math.random()<.7?1:2;
+    var buy=Math.random()<.5,bb=book(s,1),px=buy?bb.asks[0].p:bb.bids[0].p,sz=1+Math.floor(Math.random()*70);
+    s.q.set(px,Math.max(3,lot(s,px)-sz));
+    s.last=px;
+    s.trades.unshift({t:stamp(),p:px,q:sz,buy:buy});
+    if(s.trades.length>12)s.trades.pop();
+  }
+  function sum(a){return a.reduce(function(x,y){return x+y.q},0)}
+  function pct(s){return (s.last-s.open)/s.open*100}
+  function $(id){return document.getElementById(id)}
+
+  /* ---------- Stock rows ---------- */
+  function row(k){
+    var s=S[k],p=pct(s),on=watch[k];
+    return '<div class="item"><a class="main" href="#saham-'+k.toLowerCase()+'"><span><b>'+k+'</b><span class="nm">'+s.n+'</span></span>'+
+      '<span class="num">'+fmt.format(s.last)+'</span>'+
+      '<span class="pill num '+(p>=0?'up':'dn')+'">'+pc(p)+'</span></a>'+
+      '<button class="star" data-star="'+k+'" aria-pressed="'+(!!on)+'" aria-label="Watchlist '+k+'">★</button></div>';
+  }
+  function sorted(){return Object.keys(S).sort(function(a,b){return pct(S[b])-pct(S[a])})}
+
+  /* ---------- Views ---------- */
+  function rHome(){
+    $('ihsg').textContent=ihsg.v.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2});
+    var d=ihsg.v-ihsg.open,dp=d/ihsg.open*100,c=$('ihsgc');
+    c.textContent=(d>=0?'+':'')+d.toFixed(2).replace('.',',')+' ('+pc(dp)+')';
+    c.className='chg num '+(d>=0?'up':'dn');
+    var o=sorted();
+    $('gain').innerHTML=o.slice(0,3).map(row).join('');
+    $('lose').innerHTML=o.slice(-3).reverse().map(row).join('');
+  }
+  function rMarket(){$('market').innerHTML=Object.keys(S).map(row).join('')}
+  function rWatch(){
+    var ks=Object.keys(S).filter(function(k){return watch[k]});
+    if(!ks.length){$('watch').innerHTML='<p class="note">Belum ada saham. Ketuk bintang di halaman Pasar untuk menambahkan.</p>';return}
+    $('watch').innerHTML=ks.map(function(k){
+      var s=S[k],b=book(s,1),p=pct(s);
+      return '<div class="item"><a class="main" href="#saham-'+k.toLowerCase()+'"><span><b>'+k+'</b><span class="nm num">Bid '+fmt.format(b.bids[0].p)+' · Offer '+fmt.format(b.asks[0].p)+'</span></span>'+
+        '<span class="num">'+fmt.format(s.last)+'</span><span class="pill num '+(p>=0?'up':'dn')+'">'+pc(p)+'</span></a>'+
+        '<button class="star" data-star="'+k+'" aria-pressed="true" aria-label="Hapus '+k+'">★</button></div>';
+    }).join('');
+  }
+var SECT={'Perbankan':['BBCA','BBRI'],'Telekomunikasi':['TLKM'],'Otomotif':['ASII'],'Teknologi':['GOTO']};
+  function rResearch(){
+    var ks=Object.keys(S),u=0,d=0,f=0;
+    ks.forEach(function(k){var p=pct(S[k]);if(p>0.005)u++;else if(p<-0.005)d++;else f++});
+    $('breadth').innerHTML='<div class="imb" style="height:10px"><i style="width:'+(u/ks.length*100)+'%"></i></div>'+
+      '<div class="stats" style="margin-top:12px"><div class="stat"><small>Naik</small><b class="num up">'+u+'</b></div>'+
+      '<div class="stat"><small>Turun</small><b class="num dn">'+d+'</b></div><div class="stat"><small>Tetap</small><b class="num">'+f+'</b></div></div>';
+    $('sector').innerHTML=Object.keys(SECT).map(function(n){
+      var a=SECT[n],v=a.reduce(function(x,k){return x+pct(S[k])},0)/a.length,w=Math.min(100,Math.abs(v)/3*100);
+      return '<div class="srow"><div><span>'+n+'</span><span class="num '+(v>=0?'up':'dn')+'">'+pc(v)+'</span></div>'+
+        '<div class="bar"><i style="width:'+w+'%;background:var('+(v>=0?'--bid':'--ask')+')"></i></div></div>';
+    }).join('');
+    $('walls').innerHTML=ks.map(function(k){
+      var s=S[k],b=book(s,15),wb=b.bids[0],wa=b.asks[0],i;
+      for(i=1;i<15;i++){if(b.bids[i].q>wb.q)wb=b.bids[i];if(b.asks[i].q>wa.q)wa=b.asks[i]}
+      var tb=sum(b.bids),ta=sum(b.asks),im=Math.round(tb/(tb+ta)*100);
+      return '<tr><td><a href="#saham-'+k.toLowerCase()+'">'+k+'</a></td><td>'+fmt.format(s.last)+'</td>'+
+        '<td class="up">'+fmt.format(wb.p)+'<br><small>'+fmt.format(wb.q)+' lot</small></td>'+
+        '<td class="dn">'+fmt.format(wa.p)+'<br><small>'+fmt.format(wa.q)+' lot</small></td><td>'+im+'%</td></tr>';
+    }).join('');
+  }
+
+  var NEWS=[
+    {t:'IHSG bergerak bervariasi, saham perbankan menjadi penopang',w:'30 menit lalu',k:['BBCA','BBRI'],
+     b:['Pergerakan indeks pagi ini relatif sempit. Saham perbankan berkapitalisasi besar ramai diperdagangkan dan sebagian menahan penurunan indeks.',
+        'Pelaku pasar memantau antrean bid dan offer di level terdekat sebelum menambah posisi. Artikel ini contoh untuk demonstrasi tampilan.']},
+    {t:'Saham telekomunikasi dipantau menjelang akhir tahun',w:'1 jam lalu',k:['TLKM'],
+     b:['Volume transaksi saham telekomunikasi terlihat stabil dengan spread yang rapat di level harga aktif.',
+        'Investor biasanya membandingkan tembok bid dan offer untuk memperkirakan area harga yang diperebutkan. Ini hanya contoh berita fiktif.']},
+    {t:'Likuiditas saham teknologi berubah cepat dalam satu sesi',w:'2 jam lalu',k:['GOTO'],
+     b:['Saham dengan harga di bawah Rp200 memakai fraksi Rp1, sehingga selisih satu tick bisa berarti persentase perubahan yang besar.',
+        'Karena itu antrean lot di sekitar harga terbaik sering berganti dalam hitungan detik. Berita ini fiktif untuk keperluan contoh.']},
+    {t:'Memahami market depth: bid, offer, dan spread',w:'Edukasi',k:['BBCA'],
+     b:['Bid adalah antrean harga beli dan offer adalah antrean harga jual. Selisih harga bid tertinggi dengan offer terendah disebut spread.',
+        'Grafik depth menjumlahkan lot dari harga terbaik ke harga yang lebih jauh. Sisi dengan akumulasi lebih tebal menandakan antrean yang lebih besar, tetapi antrean bisa dibatalkan kapan saja, jadi bukan jaminan arah harga.']},
+    {t:'Fraksi harga BEI: mengapa kenaikan satu tick berbeda tiap rentang',w:'Edukasi',k:['ASII','GOTO'],
+     b:['Fraksi harga adalah kelipatan harga terkecil yang boleh dipakai. Rp1 untuk harga di bawah 200, Rp5 untuk 200 sampai di bawah 500, Rp10 untuk 500 sampai di bawah 2.000, Rp25 untuk 2.000 sampai di bawah 5.000, dan Rp50 untuk 5.000 ke atas.',
+        'Satu lot berisi 100 lembar, jadi nilai satu lot adalah harga dikalikan 100.']},
+    {t:'Saham otomotif diperdagangkan di rentang sempit',w:'Kemarin',k:['ASII'],
+     b:['Pergerakan harian terbatas dengan antrean offer yang cukup tebal di atas harga terakhir.',
+        'Contoh berita fiktif untuk melengkapi tampilan aplikasi. Data pasar pada halaman lain juga simulasi.']}
+  ];
+  var art=1;
+  function rNews(){
+    $('newslist').innerHTML=NEWS.map(function(n,i){
+      return '<a class="news" href="#berita-'+(i+1)+'"><b>'+n.t+'</b><span class="sub">'+n.w+'</span>'+
+        n.k.map(function(k){return '<span class="tag">'+k+'</span>'}).join('')+'</a>';
+    }).join('');
+  }
+  function setArticle(){
+    var n=NEWS[art-1];
+    $('art').innerHTML='<h2>'+n.t+'</h2><div class="sub">'+n.w+' · Contoh, bukan berita sungguhan</div>'+n.b.map(function(x){return '<p>'+x+'</p>'}).join('');
+  }
+  function rArtStocks(){$('artstocks').innerHTML=NEWS[art-1].k.map(row).join('')}
+  
+  function drawChart(b){
+    var W=640,H=250,L=44,R=12,T=10,B=26,pw=W-L-R,ph=H-T-B;
+    var bids=b.bids,asks=b.asks,n=bids.length;
+    var pmin=bids[n-1].p,pmax=asks[n-1].p;
+    var cb=[],ca=[],c=0,i;
+    for(i=0;i<n;i++){c+=bids[i].q;cb.push(c)}
+    c=0;for(i=0;i<n;i++){c+=asks[i].q;ca.push(c)}
+    var ymax=Math.max(cb[n-1],ca[n-1])*1.08;
+    function X(p){return L+(p-pmin)/(pmax-pmin)*pw}
+    function Y(v){return T+ph-(v/ymax)*ph}
+    var base=Y(0),d,da;
+    d='M'+X(bids[0].p)+','+base+' L'+X(bids[0].p)+','+Y(cb[0]);
+    for(i=1;i<n;i++){d+=' L'+X(bids[i].p)+','+Y(cb[i-1])+' L'+X(bids[i].p)+','+Y(cb[i])}
+    d+=' L'+X(bids[n-1].p)+','+base+' Z';
+    da='M'+X(asks[0].p)+','+base+' L'+X(asks[0].p)+','+Y(ca[0]);
+    for(i=1;i<n;i++){da+=' L'+X(asks[i].p)+','+Y(ca[i-1])+' L'+X(asks[i].p)+','+Y(ca[i])}
+    da+=' L'+X(asks[n-1].p)+','+base+' Z';
+    var g='';
+    for(i=0;i<=3;i++){
+      var v=ymax/1.08*i/3,y=Y(v);
+      g+='<line class="axis" x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end">'+fmt.format(Math.round(v))+'</text>';
+    }
+    var mid=(bids[0].p+asks[0].p)/2;
+    g+='<text x="'+L+'" y="'+(H-6)+'" text-anchor="start">'+fmt.format(pmin)+'</text>'+
+       '<text x="'+X(mid)+'" y="'+(H-6)+'" text-anchor="middle">'+fmt.format(mid)+'</text>'+
+       '<text x="'+(W-R)+'" y="'+(H-6)+'" text-anchor="end">'+fmt.format(pmax)+'</text>';
+    var el=$('chart');
+    el.innerHTML=g+'<path class="bidA" d="'+d+'"/><path class="askA" d="'+da+'"/><line id="cx" class="cross" y1="'+T+'" y2="'+base+'" x1="-10" x2="-10"/>';
+    el._m={L:L,R:R,W:W,pmin:pmin,pmax:pmax,bids:bids,asks:asks,cb:cb,ca:ca,pw:pw,mid:mid};
+  }
+  function rStock(){
+    var s=S[cur],b=book(s,N),i;
+    $('nm').textContent=cur+' · '+s.n;
+    var chg=s.last-s.open,p=pct(s);
+    $('last').textContent=fmt.format(s.last);
+    var ce=$('chg');ce.textContent=(chg>=0?'+':'')+fmt.format(chg)+' ('+pc(p)+')';ce.className='chg num '+(chg>=0?'up':'dn');
+    var sp=b.asks[0].p-b.bids[0].p;
+    $('spr').textContent='Rp'+fmt.format(sp)+' ('+(sp/b.bids[0].p*100).toFixed(2).replace('.',',')+'%)';
+    var tb=sum(b.bids),ta=sum(b.asks),im=tb/(tb+ta)*100;
+    $('tb').textContent=fmt.format(tb);$('ta').textContent=fmt.format(ta);
+    $('imbv').textContent=Math.round(im)+'%';$('imbbar').style.width=im+'%';
+    var mx=0;for(i=0;i<N;i++)mx=Math.max(mx,b.bids[i].q,b.asks[i].q);
+    var h='';
+    for(i=0;i<N;i++){
+      h+='<tr><td class="b" style="--w:'+(b.bids[i].q/mx*100).toFixed(1)+'%">'+fmt.format(b.bids[i].q)+'</td>'+
+         '<td class="pb">'+fmt.format(b.bids[i].p)+'</td>'+
+         '<td class="pa a" style="--w:0%">'+fmt.format(b.asks[i].p)+'</td>'+
+         '<td class="a" style="--w:'+(b.asks[i].q/mx*100).toFixed(1)+'%">'+fmt.format(b.asks[i].q)+'</td></tr>';
+    }
+    $('ladder').innerHTML=h;
+    $('tape').innerHTML=s.trades.map(function(t){
+      return '<li><span class="t">'+t.t+'</span><span class="'+(t.buy?'up':'dn')+'">'+fmt.format(t.p)+'</span><span>'+fmt.format(t.q)+' lot</span></li>';
+    }).join('');
+    drawChart(b);
+    var st=$('starTop');st.setAttribute('aria-pressed',!!watch[cur]);
+  }
+  function renderCurrent(){
+    if(view==='beranda')rHome();
+    else if(view==='pasar')rMarket();
+    else if(view==='watchlist')rWatch();
+    else if(view==='riset')rResearch();
+    else if(view==='artikel')rArtStocks();
+    else if(view==='saham')rStock();
+  }
+
+  /* ---------- Router ---------- */
+  var TITLES={beranda:['Beranda','Ringkasan pasar hari ini (simulasi)'],pasar:['Pasar','Semua saham contoh'],watchlist:['Watchlist','Saham yang Anda pantau'],riset:['Riset','Ringkasan dari data order book (simulasi)'],berita:['Berita','Contoh berita dan edukasi pasar']};
+  var VIEWS=['beranda','pasar','watchlist','riset','berita','artikel','saham'];
+  function parse(){
+    var h=(location.hash||'').slice(1).toLowerCase();
+    if(h.indexOf('saham-')===0){var k=h.slice(6).toUpperCase();if(S[k])return{v:'saham',k:k}}
+    if(h.indexOf('berita-')===0){var id=parseInt(h.slice(7),10);if(NEWS[id-1])return{v:'artikel',id:id}}
+    if(TITLES[h])return{v:h};
+    return{v:'beranda'};
+  }
+  function route(){
+    var r=parse(),changed=r.v!==view||(r.k&&r.k!==cur)||(r.id&&r.id!==art);
+    view=r.v;if(r.k)cur=r.k;if(r.id)art=r.id;
+    VIEWS.forEach(function(v){$('v-'+v).hidden=(v!==view)});
+    [].forEach.call(document.querySelectorAll('[data-nav]'),function(a){
+      var key=a.getAttribute('data-nav'),on=key===view||(view==='saham'&&key==='pasar')||(view==='artikel'&&key==='berita');
+      if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    });
+    var isStock=view==='saham',isArt=view==='artikel',bk=$('back');
+    bk.style.display=(isStock||isArt)?'inline-block':'none';
+    bk.setAttribute('href',isArt?'#berita':'#pasar');
+    bk.textContent=isArt?'← Berita':'← Pasar';
+    $('starTop').hidden=!isStock;
+    $('title').textContent=isStock?cur:isArt?'Berita':TITLES[view][0];
+    $('subt').textContent=isStock?S[cur].n:isArt?'Contoh tampilan':TITLES[view][1];
+    if(view==='berita')rNews();
+    if(isArt)setArticle();
+    renderCurrent();
+    if(changed)window.scrollTo(0,0);
+  }
+    window.addEventListener('hashchange',route);
+
+  /* ---------- Events ---------- */
+  document.addEventListener('click',function(e){
+    var t=e.target.closest?e.target.closest('[data-star],[data-sw],#starTop'):null;
+    if(!t)return;
+    if(t.id==='starTop'){watch[cur]=watch[cur]?0:1;renderCurrent();return}
+    if(t.hasAttribute('data-star')){var k=t.getAttribute('data-star');watch[k]=watch[k]?0:1;renderCurrent();return}
+    if(t.hasAttribute('data-sw')){t.setAttribute('aria-pressed',t.getAttribute('aria-pressed')!=='true')}
+  });
+  $('lvl').addEventListener('click',function(e){
+    var t=e.target;
+    if(t.id==='pause'){paused=!paused;t.setAttribute('aria-pressed',paused);t.textContent=paused?'Lanjut':'Jeda';return}
+    var n=t.getAttribute&&t.getAttribute('data-n');if(!n)return;
+    N=+n;
+    [].forEach.call(document.querySelectorAll('#lvl [data-n]'),function(b){b.setAttribute('aria-pressed',b===t)});
+    rStock();
+  });
+  var chart=$('chart'),tip=$('tip');
+  function hover(e){
+    var m=chart._m;if(!m)return;
+    var r=chart.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*m.W;
+    x=Math.max(m.L,Math.min(m.W-m.R,x));
+    var p=m.pmin+(x-m.L)/m.pw*(m.pmax-m.pmin),idx=0,i;
+    if(p<=m.mid){
+      for(i=0;i<m.bids.length;i++){if(m.bids[i].p>=p)idx=i}
+      tip.innerHTML='Harga <b class="num">'+fmt.format(m.bids[idx].p)+'</b> · akumulasi bid <b class="num up">'+fmt.format(m.cb[idx])+' lot</b> ('+fmt.format(m.cb[idx]*100)+' lembar)';
+    }else{
+      for(i=0;i<m.asks.length;i++){if(m.asks[i].p<=p)idx=i}
+      tip.innerHTML='Harga <b class="num">'+fmt.format(m.asks[idx].p)+'</b> · akumulasi offer <b class="num dn">'+fmt.format(m.ca[idx])+' lot</b> ('+fmt.format(m.ca[idx]*100)+' lembar)';
+    }
+    var c=$('cx');if(c){c.setAttribute('x1',x);c.setAttribute('x2',x)}
+  }
+  chart.addEventListener('pointermove',hover);
+  chart.addEventListener('pointerdown',hover);
+
+  /* ---------- Boot ---------- */
+  for(var k in S){for(var j=0;j<8;j++)step(S[k])}
+  route();
+  setInterval(function(){
+    if(paused||document.hidden)return;
+    for(var k in S){if(Math.random()<.5)step(S[k])}
+    ihsg.v+= (Math.random()-.5)*1.6;
+    renderCurrent();
+  },1000);
+})();
+</script>

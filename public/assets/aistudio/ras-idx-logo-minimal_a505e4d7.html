@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAS IDX · Logo Minimalis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0B1F3A;
+    --accent: #16C47F;
+    --paper: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-family: 'Sora', sans-serif;
+  }
+  @media (max-width: 720px) { body { grid-template-columns: 1fr; } }
+
+  .panel {
+    display: grid;
+    place-items: center;
+    padding: 64px 24px;
+    min-height: 50vh;
+  }
+  .light { background: var(--paper); color: var(--ink); }
+  .dark  { background: var(--ink);   color: var(--paper); }
+
+  /* ---- Logo ---- */
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 56px;            /* ubah ukuran logo di sini */
+    line-height: 1;
+  }
+  .logo svg { height: 1.1em; width: auto; }
+  .logo .bar { stroke: currentColor; stroke-width: 6; stroke-linecap: round; }
+  .logo .bar.up { stroke: var(--accent); }
+
+  .logo .word {
+    display: flex;
+    gap: 0.28em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .logo .word b   { font-weight: 700; }
+  .logo .word span { font-weight: 300; }
+</style>
+</head>
+<body>
+
+<section class="panel light">
+  <div class="logo" role="img" aria-label="RAS IDX">
+    <svg viewBox="0 0 48 64" aria-hidden="true">
+      <line class="bar" x1="8"  y1="34" x2="8"  y2="58"></line>
+      <line class="bar" x1="24" y1="22" x2="24" y2="50"></line>
+      <line class="bar up" x1="40" y1="6" x2="40" y2="40"></line>
+    </svg>
+    <div class="word"><b>RAS</b><span>IDX</span></div>
+  </div>
+</section>
+
+<section class="panel dark">
+  <div class="logo" role="img" aria-label="RAS IDX">
+    <svg viewBox="0 0 48 64" aria-hidden="true">
+      <line class="bar" x1="8"  y1="34" x2="8"  y2="58"></line>
+      <line class="bar" x1="24" y1="22" x2="24" y2="50"></line>
+      <line class="bar up" x1="40" y1="6" x2="40" y2="40"></line>
+    </svg>
+    <div class="word"><b>RAS</b><span>IDX</span></div>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+name: Build Android APK (RAS.IDX Terminal)
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: 'Live HTTPS URL Backend RAS.IDX Terminal'
+        required: false
+        default: 'https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app'
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java 17 (Android Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Dependencies & Build Web Assets
+        run: |
+          npm install
+          npm run build
+
+      - name: Install Capacitor & Generate Android Project
+        env:
+          CAPACITOR_SERVER_URL: ${{ github.event.inputs.server_url || 'https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app' }}
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap add android
+          npx cap sync android
+
+      - name: Apply App Icons to Android Mipmap
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          cp public/pwa-512x512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png || true
+          cp public/pwa-maskable-512x512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png || true
+
+      - name: Compile Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAS_IDX_Terminal-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'" />
+  <title>RAS Terminal — Intelijen Saham BEI &amp; Riset Pasar</title>
+  <meta name="theme-color" content="#0F766E" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --teal: #0f766e;
+      --teal-hover: #115e59;
+      --teal-soft: #f0fdfa;
+      --green: #16a34a;
+      --green-bg: #dcfce7;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
+      --amber: #d97706;
+      --amber-bg: #fef3c7;
+    }
+    html.dark {
+      --bg: #0b1120;
+      --surface: #1e293b;
+      --surface-alt: #0f172a;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #334155;
+      --teal: #14b8a6;
+      --teal-hover: #0d9488;
+      --teal-soft: #134e4a;
+      --green: #4ade80;
+      --green-bg: rgba(22, 163, 74, 0.2);
+      --red: #f87171;
+      --red-bg: rgba(220, 38, 38, 0.2);
+      --amber: #fbbf24;
+      --amber-bg: rgba(217, 119, 6, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-top: 64px;
+      padding-bottom: 76px;
+      transition: background 0.2s, color 0.2s;
+    }
+    @media (min-width: 768px) { body { padding-bottom: 24px; } }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+
+    /* Navbar */
+    .navbar {
+      position: fixed; top: 0; inset-inline: 0; height: 64px; z-index: 50;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+    }
+    .navbar .container { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; }
+    .brand-icon {
+      width: 32px; height: 32px; border-radius: 8px; background: #0f766e;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .brand-teal { color: var(--teal); }
+    .nav-links { display: none; gap: 20px; font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+    .nav-links a.active, .nav-links a:hover { color: var(--teal); }
+    @media (min-width: 768px) { .nav-links { display: flex; align-items: center; } }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-icon {
+      width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); display: grid; place-items: center;
+    }
+    .btn-primary {
+      background: #0f766e; color: #fff; border: none; padding: 8px 16px;
+      border-radius: 8px; font-weight: 600; font-size: 0.875rem;
+    }
+    .btn-primary:hover { background: #115e59; }
+    .btn-outline {
+      background: var(--surface); border: 1px solid var(--border); padding: 8px 14px;
+      border-radius: 8px; font-weight: 500; font-size: 0.875rem;
+    }
+    .btn-outline:hover { border-color: var(--teal); }
+    .badge-offline {
+      font-size: 0.7rem; background: var(--amber-bg); color: var(--amber);
+      padding: 2px 8px; border-radius: 99px; font-weight: 600;
+    }
+
+    /* Bottom Nav Mobile */
+    .bnav {
+      position: fixed; bottom: 0; inset-inline: 0; z-index: 50;
+      background: var(--surface); border-top: 1px solid var(--border);
+      display: grid; grid-template-columns: repeat(5, 1fr); text-align: center;
+      font-size: 11px; color: var(--muted); padding: 6px 0;
+    }
+    .bnav a { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .bnav a.active { color: var(--teal); font-weight: 600; }
+    @media (min-width: 768px) { .bnav { display: none; } }
+
+    /* Pages */
+    .page { display: none; padding: 24px 0; }
+    .page.active { display: block; }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (min-width: 768px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (min-width: 768px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Hero */
+    .hero { text-align: center; padding: 36px 16px; }
+    .hero h1 { font-size: clamp(1.75rem, 4.5vw, 2.75rem); font-weight: 800; line-height: 1.2; margin-bottom: 14px; }
+    .hero p { color: var(--muted); max-width: 600px; margin: 0 auto 24px; }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; cursor: pointer; user-select: none; }
+    th:hover { color: var(--teal); }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+    .pill-buy { background: var(--green-bg); color: var(--green); }
+    .pill-sell { background: var(--red-bg); color: var(--red); }
+    .pill-hold { background: var(--amber-bg); color: var(--amber); }
+    .text-up { color: var(--green); font-weight: 600; }
+    .text-down { color: var(--red); font-weight: 600; }
+
+    /* Inputs & Filters */
+    .input, .select {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 0.875rem;
+    }
+    .input:focus, .select:focus { outline: 2px solid var(--teal); border-color: transparent; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Tabs */
+    .tabs { display: inline-flex; background: var(--surface-alt); padding: 4px; border-radius: 10px; margin-bottom: 16px; }
+    .tab { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; font-weight: 600; font-size: 0.875rem; color: var(--muted); }
+    .tab.active { background: var(--surface); color: var(--teal); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.55);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    @media (min-width: 768px) { .modal-backdrop { align-items: center; padding: 16px; } }
+    .modal {
+      background: var(--surface); width: 100%; max-width: 680px; max-height: 90vh;
+      overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px;
+    }
+    @media (min-width: 768px) { .modal { border-radius: 16px; } }
+
+    /* Canvas */
+    .chart-box { position: relative; height: 220px; width: 100%; }
+    .chart-box-sm { position: relative; height: 110px; width: 100%; margin-top: 8px; }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+      background: #0f172a; color: #fff; padding: 8px 16px; border-radius: 8px;
+      font-size: 0.85rem; z-index: 80; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    @media (min-width: 768px) { #toast { bottom: 24px; } }
+
+    .notif-badge {
+      background: #dc2626; color: #fff; font-size: 10px; font-weight: 700;
+      padding: 1px 5px; border-radius: 99px; margin-left: 4px;
+    }
+    .footer { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 24px 16px; }
+    .legal h2 { font-size: 1.2rem; margin: 18px 0 8px; }
+    .legal h3 { font-size: 1rem; margin: 12px 0 4px; }
+    .legal p, .legal li { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; }
+    .legal ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" aria-label="Navigasi utama">
+  <div class="container">
+    <a href="#home" class="brand">
+      <span class="brand-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+      </span>
+      <span><span class="brand-teal">RAS</span> Terminal</span>
+      <span id="netDot" class="badge-offline hidden">Offline</span>
+    </a>
+    <div class="nav-links">
+      <a href="#home" data-nav="home">Beranda</a>
+      <a href="#dashboard" data-nav="dashboard">Dashboard</a>
+      <a href="#watchlist" data-nav="watchlist">Watchlist</a>
+      <a href="#research" data-nav="research">Riset</a>
+      <a href="#notifications" data-nav="notifications">Notifikasi<span id="notifBadgeDesktop" class="notif-badge hidden">0</span></a>
+    </div>
+    <div class="nav-actions">
+      <button id="themeBtn" class="btn-icon" aria-label="Ganti tema" title="Ganti tema">🌙</button>
+      <a id="userBtn" href="#auth" class="btn-primary hidden">Masuk</a>
+    </div>
+  </div>
+</nav>
+
+<main id="main" class="container">
+
+  <!-- HOME -->
+  <section id="page-home" class="page active">
+    <div class="hero">
+      <h1>Intelijen Saham BEI &amp;<br><span class="brand-teal">Riset Pasar Profesional</span></h1>
+      <p>Analisis likuiditas, aliran dana asing, grafik teknikal, sinyal support/resisten, screening &amp; riset geopolitik untuk emiten BEI.</p>
+      <div class="hero-cta">
+        <a href="#dashboard" class="btn-primary" style="padding: 12px 24px; font-size: 1rem;">Buka Dashboard</a>
+        <a href="#research" class="btn-outline" style="padding: 12px 24px; font-size: 1rem;">Baca Riset Pasar</a>
+      </div>
+      <div class="grid-4">
+        <div class="card"><div style="font-size:1.5rem;font-weight:700;color:var(--teal)" id="statCount">10</div><div style="font-size:0.8rem;color:var(--muted)">Saham dipantau</div></div>
+        <div class="card"><div style="font-size:1.5rem;font-weight:700;color:var(--teal)" id="srcLabel">Demo</div><div style="font-size:0.8rem;color:var(--muted)">Sumber data</div></div>
+        <div class="card"><div style="font-size:1.5rem;font-weight:700;color:var(--teal)">SMA·RSI</div><div style="font-size:0.8rem;color:var(--muted)">Indikator</div></div>
+        <div class="card"><div style="font-size:1.5rem;font-weight:700;color:var(--teal)">Lokal</div><div style="font-size:0.8rem;color:var(--muted)">Watchlist &amp; Alert</div></div>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="card"><h3>📊 Analisis Likuiditas</h3><p style="font-size:0.875rem;color:var(--muted);margin-top:6px">Pantau aliran dana masuk &amp; keluar (net foreign flow) pada emiten pilihan.</p></div>
+      <div class="card"><h3>📈 Grafik &amp; Indikator</h3><p style="font-size:0.875rem;color:var(--muted);margin-top:6px">Visualisasi harga historis, SMA20, RSI14, serta level support &amp; resisten.</p></div>
+      <div class="card"><h3>🌍 Riset Geopolitik</h3><p style="font-size:0.875rem;color:var(--muted);margin-top:6px">Dampak peristiwa global &amp; komoditas terhadap sektor saham domestik.</p></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="page-dashboard" class="page">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">
+      <div>
+        <h1 style="font-size:1.5rem;font-weight:700">📊 Dashboard Pasar</h1>
+        <p id="dashDate" style="font-size:0.85rem;color:var(--muted)"></p>
+        <p id="demoNote" style="font-size:0.75rem;color:var(--amber);margin-top:2px">Mode simulasi offline/lokal — data bersifat edukatif.</p>
+      </div>
+      <button id="refreshBtn" class="btn-outline">↻ Segarkan</button>
+    </div>
+
+    <div class="grid-4">
+      <div class="card"><div style="font-size:0.8rem;color:var(--muted)">IHSG</div><div id="k-ihsg" style="font-size:1.25rem;font-weight:700"></div><div id="k-ihsg-c" style="font-size:0.8rem"></div></div>
+      <div class="card"><div style="font-size:0.8rem;color:var(--muted)">Net Foreign</div><div id="k-nf" style="font-size:1.25rem;font-weight:700"></div><div style="font-size:0.75rem;color:var(--muted)">Miliar Rp (sampel)</div></div>
+      <div class="card"><div style="font-size:0.8rem;color:var(--muted)">Aliran Terbesar</div><div id="k-active" style="font-size:1.25rem;font-weight:700"></div><div id="k-active-c" style="font-size:0.8rem"></div></div>
+      <div class="card"><div style="font-size:0.8rem;color:var(--muted)">Sinyal Beli</div><div id="k-buy" style="font-size:1.25rem;font-weight:700;color:var(--green)"></div><div style="font-size:0.75rem;color:var(--muted)">dari <span id="k-total"></span> saham</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card"><h2 style="font-size:1rem;font-weight:600;margin-bottom:10px">IHSG — Tren 20 Hari</h2><div class="chart-box"><canvas id="chartIHSG"></canvas></div></div>
+      <div class="card"><h2 style="font-size:1rem;font-weight:600;margin-bottom:10px">Aliran Dana per Saham (Miliar Rp)</h2><div class="chart-box"><canvas id="chartFlow"></canvas></div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+        <h2 style="font-size:1.05rem;font-weight:600">🔍 Screening Saham</h2>
+        <div class="filters">
+          <input id="f-q" class="input" placeholder="Cari kode…" style="width:130px" aria-label="Cari kode saham" />
+          <select id="f-sig" class="select" aria-label="Filter sinyal">
+            <option value="">Semua sinyal</option>
+            <option value="Beli">Beli</option>
+            <option value="Tahan">Tahan</option>
+            <option value="Jual">Jual</option>
+          </select>
+          <select id="f-flow" class="select" aria-label="Filter aliran dana">
+            <option value="">Semua aliran</option>
+            <option value="in">Inflow (+)</option>
+            <option value="out">Outflow (-)</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:32px">★</th>
+              <th data-sort="c">Kode ↕</th>
+              <th data-sort="p">Harga ↕</th>
+              <th data-sort="ch">% ↕</th>
+              <th>Support</th>
+              <th>Resisten</th>
+              <th data-sort="f">Aliran (M) ↕</th>
+              <th>Sinyal</th>
+            </tr>
+          </thead>
+          <tbody id="stockBody"></tbody>
+        </table>
+      </div>
+      <p style="font-size:0.75rem;color:var(--muted);margin-top:10px">Ketuk baris/kode saham untuk melihat grafik detail &amp; indikator teknikal.</p>
+    </div>
+  </section>
+
+  <!-- WATCHLIST -->
+  <section id="page-watchlist" class="page">
+    <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:4px">⭐ Watchlist</h1>
+    <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px">Saham favorit tersimpan otomatis di perangkat Anda.</p>
+    <div id="wlList" style="display:grid;gap:10px"></div>
+  </section>
+
+  <!-- RESEARCH -->
+  <section id="page-research" class="page">
+    <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:4px">📰 Riset &amp; Geopolitik</h1>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px">Wawasan makro, komoditas, dan analisis teknikal pasar.</p>
+    <div class="tabs">
+      <button id="rtab-art" class="tab active" data-rtab="art">Artikel Edukasi</button>
+      <button id="rtab-geo" class="tab" data-rtab="geo">Dampak Geopolitik</button>
+    </div>
+    <div id="resList" style="display:grid;gap:12px"></div>
+  </section>
+
+  <!-- NOTIFICATIONS -->
+  <section id="page-notifications" class="page">
+    <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:12px">🔔 Alert Harga Lokal</h1>
+    <form id="alertForm" class="card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px">
+      <input id="a-code" class="input" required maxlength="6" placeholder="Kode (mis. BBRI)" style="text-transform:uppercase" />
+      <select id="a-dir" class="select">
+        <option value="ge">Naik ke ≥</option>
+        <option value="le">Turun ke ≤</option>
+      </select>
+      <input id="a-price" class="input" type="number" required min="1" placeholder="Target Harga" />
+      <button type="submit" class="btn-primary">Tambah Alert</button>
+    </form>
+    <div id="alertList" style="display:grid;gap:8px;margin-bottom:20px"></div>
+    <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:8px">Riwayat Terpicu</h2>
+    <div id="notifList" style="display:grid;gap:8px"></div>
+  </section>
+
+  <!-- LEGAL -->
+  <section id="page-legal" class="page legal">
+    <div class="card">
+      <h1 style="font-size:1.4rem;font-weight:700">Kebijakan Privasi &amp; Syarat Penggunaan</h1>
+      <p style="font-size:0.75rem;color:var(--muted)">Terakhir diperbarui: <span class="lastUpdated"></span> · Kontak: <strong class="contactEmail"></strong></p>
+      <h2>Kebijakan Privasi</h2>
+      <ul>
+        <li><strong>Penyimpanan Lokal:</strong> Watchlist, alert harga, tema tampilan, dan preferensi disimpan secara lokal di perangkat Anda (localStorage).</li>
+        <li><strong>Tanpa Pelacak Pihak Ketiga:</strong> Aplikasi ini tidak menyematkan skrip pelacak iklan.</li>
+      </ul>
+      <h2>Syarat Penggunaan</h2>
+      <p>Seluruh data, grafik, indikator SMA/RSI, dan sinyal otomatis bersifat <strong>edukatif dan informatif</strong>, bukan rekomendasi atau ajakan untuk membeli maupun menjual efek tertentu. Keputusan investasi sepenuhnya merupakan tanggung jawab pengguna.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <a href="#legal" style="text-decoration:underline">Privasi &amp; Syarat</a> · Informasi bersifat edukatif, bukan rekomendasi investasi.
+  </footer>
+</main>
+
+<!-- Bottom Navigation (Mobile) -->
+<nav class="bnav" aria-label="Navigasi bawah">
+  <a href="#home" data-nav="home"><span>🏠</span>Beranda</a>
+  <a href="#dashboard" data-nav="dashboard"><span>📊</span>Pasar</a>
+  <a href="#watchlist" data-nav="watchlist"><span>⭐</span>Watchlist</a>
+  <a href="#research" data-nav="research"><span>📰</span>Riset</a>
+  <a href="#notifications" data-nav="notifications"><span>🔔<span id="notifBadgeMobile" class="notif-badge hidden">0</span></span>Notif</a>
+</nav>
+
+<!-- Detail Stock Modal -->
+<div id="detailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="d-title">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div>
+        <h2 id="d-title" style="font-size:1.25rem;font-weight:700"></h2>
+        <p id="d-sub" style="font-size:0.85rem;color:var(--muted)"></p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="d-star" class="btn-icon" style="font-size:1.2rem" aria-label="Toggle Watchlist">☆</button>
+        <button id="d-close" class="btn-icon" aria-label="Tutup">✕</button>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="chartDetail"></canvas></div>
+    <div class="chart-box-sm"><canvas id="chartRSI"></canvas></div>
+    <div id="d-stats" class="grid-4" style="margin-top:14px;margin-bottom:10px"></div>
+    <p id="d-read" style="font-size:0.875rem;color:var(--muted)"></p>
+  </div>
+</div>
+
+<div id="toast" class="hidden" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // 1. KONFIGURASI TERPUSAT
+  window.RAS_CONFIG = {
+    serverUrl: '', // Kosong = mode mandiri/demo lokal; isi URL HTTPS server jika tersedia
+    apiUrl: '',
+    refreshMs: 30000,
+    company: 'RAS Terminal',
+    contactEmail: 'kontak@domainanda.id',
+    lastUpdated: '23 November 2026'
+  };
+
+  // 2. KONTEN RISET & GEOPOLITIK (dari content.json)
+  const CONTENT = {
+    articles: [
+      { t: 'Harga Komoditas & Dampaknya ke Saham Tambang', tag: 'Komoditas', b: 'Pergerakan harga nikel, batu bara dan emas memengaruhi margin emiten tambang. Pantau juga kebijakan ekspor dan permintaan dari mitra dagang utama.' },
+      { t: 'Cara Membaca Aliran Dana Asing', tag: 'Edukasi', b: 'Net foreign buy/sell menunjukkan arah minat investor asing, tetapi perlu dibaca bersama volume dan tren harga agar tidak menyesatkan.' },
+      { t: 'Support & Resisten: Dasar yang Sering Terlewat', tag: 'Teknikal', b: 'Level support dan resisten adalah area di mana harga cenderung berhenti atau berbalik. Konfirmasi dengan volume sebelum mengambil keputusan.' },
+      { t: 'RSI & SMA: Membaca Momentum dan Tren', tag: 'Teknikal', b: 'RSI di atas 70 umumnya jenuh beli dan di bawah 30 jenuh jual. SMA20 membantu menilai arah tren jangka pendek. Keduanya paling berguna bila dipadukan.' }
+    ],
+    geo: [
+      { t: 'Ketegangan Timur Tengah → Minyak & Emas', tag: 'Energi', impact: 'Naik: emiten migas & emas · Tertekan: maskapai, logistik', b: 'Eskalasi konflik biasanya mendorong harga minyak dan emas karena risiko pasokan dan permintaan aset aman. Biaya bahan bakar naik menekan margin sektor transportasi.' },
+      { t: 'Kebijakan Ekspor Nikel & Rantai Pasok Baterai', tag: 'Logam', impact: 'Sensitif: emiten nikel & hilirisasi', b: 'Perubahan kuota, bea ekspor, atau permintaan kendaraan listrik global memengaruhi harga nikel dan valuasi emiten hilir. Pantau kebijakan Indonesia dan Tiongkok.' },
+      { t: 'Perang Dagang & Tarif: Dampak ke Ekspor', tag: 'Makro', impact: 'Sensitif: CPO, batu bara, tekstil', b: 'Tarif baru dapat menggeser aliran perdagangan dan menekan nilai tukar rupiah. Emiten berorientasi ekspor menerima dampak langsung pada permintaan dan harga.' },
+      { t: 'Suku Bunga The Fed & Arus Modal Asing', tag: 'Makro', impact: 'Sensitif: perbankan, properti, saham big-cap', b: 'Suku bunga AS yang tinggi cenderung menarik modal keluar dari pasar berkembang. Pergerakan net foreign sell sering mengikuti perubahan ekspektasi suku bunga.' }
+    ]
+  };
+
+  // 3. DATA PASAR SIMULASI & INDIKATOR TEKNIKAL
+  const BASE_STOCKS = [
+    { c: 'BBCA', n: 'Bank Central Asia Tbk', p: 10250, ch: 1.24, f: 185.4, hist: [9950,10000,9975,10050,10100,10075,10125,10150,10100,10175,10200,10150,10125,10200,10225,10175,10200,10225,10125,10250] },
+    { c: 'BBRI', n: 'Bank Rakyat Indonesia Tbk', p: 4680, ch: -0.85, f: -92.1, hist: [4850,4820,4800,4790,4810,4770,4750,4760,4740,4720,4730,4710,4700,4720,4690,4710,4700,4720,4720,4680] },
+    { c: 'BMRI', n: 'Bank Mandiri Tbk', p: 6850, ch: 1.48, f: 112.6, hist: [6600,6625,6650,6625,6675,6700,6675,6725,6750,6725,6750,6775,6800,6775,6800,6825,6800,6775,6750,6850] },
+    { c: 'TLKM', n: 'Telkom Indonesia Tbk', p: 2890, ch: 0.35, f: 24.8, hist: [2840,2850,2830,2860,2870,2860,2880,2870,2890,2880,2870,2860,2880,2890,2870,2880,2890,2880,2880,2890] },
+    { c: 'ASII', n: 'Astra International Tbk', p: 5125, ch: -0.49, f: -31.5, hist: [5200,5175,5200,5175,5150,5175,5150,5125,5150,5150,5125,5100,5125,5150,5125,5100,5125,5150,5150,5125] },
+    { c: 'ANTM', n: 'Aneka Tambang Tbk', p: 1580, ch: 3.27, f: 68.9, hist: [1460,1475,1470,1485,1490,1500,1495,1510,1520,1515,1530,1540,1535,1550,1545,1560,1555,1540,1530,1580] },
+    { c: 'ADRO', n: 'Alamtri Resources Indonesia Tbk', p: 2740, ch: 2.24, f: 54.2, hist: [2580,2600,2590,2610,2620,2640,2630,2650,2660,2650,2670,2680,2690,2700,2690,2710,2700,2690,2680,2740] },
+    { c: 'ICBP', n: 'Indofood CBP Sukses Makmur Tbk', p: 11450, ch: 0.44, f: 18.3, hist: [11300,11325,11350,11325,11375,11400,11375,11400,11425,11400,11425,11450,11425,11400,11425,11450,11425,11400,11400,11450] },
+    { c: 'PGAS', n: 'Perusahaan Gas Negara Tbk', p: 1520, ch: -1.30, f: -19.4, hist: [1570,1565,1560,1555,1560,1550,1545,1550,1540,1545,1535,1540,1530,1535,1530,1525,1530,1535,1540,1520] },
+    { c: 'AMMN', n: 'Amman Mineral Internasional Tbk', p: 9450, ch: 1.89, f: 94.7, hist: [8950,9000,9025,9050,9100,9075,9125,9175,9200,9225,9250,9200,9275,9300,9325,9300,9350,9325,9275,9450] }
+  ];
+
+  const IHSG_HIST = [7180,7195,7188,7210,7225,7218,7240,7255,7248,7265,7280,7272,7290,7305,7298,7315,7322,7310,7302,7338];
+
+  function calcSMA(arr, period) {
+    return arr.map((_, i) => {
+      const start = Math.max(0, i - period + 1);
+      const slice = arr.slice(start, i + 1);
+      return slice.reduce((a, b) => a + b, 0) / slice.length;
+    });
+  }
+
+  function calcRSI(arr, period = 14) {
+    const rsi = [];
+    for (let i = 0; i < arr.length; i++) {
+      if (i < 2) { rsi.push(50); continue; }
+      const start = Math.max(1, i - period + 1);
+      let gains = 0, losses = 0, count = 0;
+      for (let j = start; j <= i; j++) {
+        const diff = arr[j] - arr[j - 1];
+        if (diff >= 0) gains += diff; else losses -= diff;
+        count++;
+      }
+      const avgGain = gains / count;
+      const avgLoss = losses / count;
+      if (avgLoss === 0) rsi.push(100);
+      else {
+        const rs = avgGain / avgLoss;
+        rsi.push(100 - (100 / (1 + rs)));
+      }
+    }
+    return rsi;
+  }
+
+  function enrichStock(s) {
+    const min = Math.min(...s.hist);
+    const max = Math.max(...s.hist);
+    const sma = calcSMA(s.hist, 10);
+    const rsi = calcRSI(s.hist, 14);
+    const lastRsi = rsi[rsi.length - 1];
+    const lastSma = sma[sma.length - 1];
+    let sig = 'Tahan';
+    if (s.p > lastSma && s.f > 20 && lastRsi < 72) sig = 'Beli';
+    else if (s.p < lastSma && s.f < -15) sig = 'Jual';
+    return {
+      ...s,
+      sup: Math.round(min * 0.995),
+      res: Math.round(max * 1.005),
+      sma,
+      rsi,
+      lastRsi: Math.round(lastRsi * 10) / 10,
+      lastSma: Math.round(lastSma),
+      sig
+    };
+  }
+
+  // 4. STATE & PENYIMPANAN LOKAL
+  const LS = {
+    get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  const state = {
+    stocks: BASE_STOCKS.map(enrichStock),
+    watchlist: LS.get('ras_wl', ['BBCA', 'ANTM']),
+    alerts: LS.get('ras_alerts', []),
+    notifs: LS.get('ras_notifs', []),
+    sortKey: 'f',
+    sortDir: -1,
+    resTab: 'art',
+    activeDetail: null
+  };
+
+  // 5. UTILITAS UI
+  const $ = (sel) => document.querySelector(sel);
+  const fmtNum = (n) => Number(n).toLocaleString('id-ID');
+  function toast(msg) {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.add('hidden'), 2600);
+  }
+
+  // 6. GRAFIK CANVAS RINGAN (Tanpa Dependensi Eksternal)
+  function drawLineChart(canvas, labels, seriesList, opts = {}) {
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = Math.max(200, rect.width * dpr);
+    canvas.height = Math.max(100, rect.height * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const w = rect.width, h = rect.height;
+    const pad = { top: 14, right: 14, bottom: 22, left: 50 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    const allVals = seriesList.flatMap(s => s.data);
+    let min = opts.min !== undefined ? opts.min : Math.min(...allVals);
+    let max = opts.max !== undefined ? opts.max : Math.max(...allVals);
+    if (min === max) { min -= 1; max += 1; }
+    const range = max - min;
+
+    const isDark = document.documentElement.classList.contains('dark');
+    const gridColor = isDark ? '#334155' : '#e2e8f0';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = gridColor;
+    ctx.fillStyle = textColor;
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.lineWidth = 1;
+
+    // Grid horizontal
+    const steps = 4;
+    for (let i = 0; i <= steps; i++) {
+      const y = pad.top + (ch * i) / steps;
+      const val = max - (range * i) / steps;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, y);
+      ctx.lineTo(w - pad.right, y);
+      ctx.stroke();
+      ctx.fillText(Math.round(val).toLocaleString('id-ID'), 4, y + 4);
+    }
+
+    // Garis referensi opsional (mis. RSI 30 & 70)
+    if (opts.refLines) {
+      opts.refLines.forEach(ref => {
+        const y = pad.top + ch * (1 - (ref - min) / range);
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    // Series
+    seriesList.forEach(s => {
+      ctx.strokeStyle = s.color || '#0f766e';
+      ctx.lineWidth = s.width || 2;
+      ctx.beginPath();
+      s.data.forEach((v, idx) => {
+        const x = pad.left + (cw * idx) / Math.max(1, s.data.length - 1);
+        const y = pad.top + ch * (1 - (v - min) / range);
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    });
+  }
+
+  function drawBarChart(canvas, labels, values) {
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = Math.max(200, rect.width * dpr);
+    canvas.height = Math.max(100, rect.height * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const w = rect.width, h = rect.height;
+    const pad = { top: 14, right: 10, bottom: 26, left: 42 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    const maxAbs = Math.max(10, ...values.map(v => Math.abs(v)));
+    const zeroY = pad.top + ch / 2;
+    const isDark = document.documentElement.classList.contains('dark');
+    ctx.clearRect(0, 0, w, h);
+
+    // Garis nol
+    ctx.strokeStyle = isDark ? '#475569' : '#cbd5e1';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, zeroY);
+    ctx.lineTo(w - pad.right, zeroY);
+    ctx.stroke();
+
+    ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.fillText('+' + Math.round(maxAbs), 4, pad.top + 8);
+    ctx.fillText('0', 18, zeroY + 3);
+    ctx.fillText('-' + Math.round(maxAbs), 4, h - pad.bottom);
+
+    const slot = cw / values.length;
+    const barW = Math.max(8, slot * 0.6);
+    values.forEach((v, i) => {
+      const x = pad.left + i * slot + (slot - barW) / 2;
+      const barH = (Math.abs(v) / maxAbs) * (ch / 2);
+      ctx.fillStyle = v >= 0 ? '#16a34a' : '#dc2626';
+      ctx.fillRect(x, v >= 0 ? zeroY - barH : zeroY, barW, barH);
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#334155';
+      ctx.fillText(labels[i], x, h - 8);
+    });
+  }
+
+  // 7. RENDER DASHBOARD, WATCHLIST, RISET, NOTIFIKASI
+  function renderDashboard() {
+    const now = new Date();
+    $('#dashDate').textContent = 'Pembaruan: ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+
+    const ihsgLast = IHSG_HIST[IHSG_HIST.length - 1];
+    const ihsgPrev = IHSG_HIST[IHSG_HIST.length - 2];
+    const ihsgDiff = ((ihsgLast - ihsgPrev) / ihsgPrev) * 100;
+    $('#k-ihsg').textContent = fmtNum(ihsgLast);
+    $('#k-ihsg-c').textContent = (ihsgDiff >= 0 ? '+' : '') + ihsgDiff.toFixed(2) + '%';
+    $('#k-ihsg-c').className = ihsgDiff >= 0 ? 'text-up' : 'text-down';
+
+    const netForeign = state.stocks.reduce((acc, s) => acc + s.f, 0);
+    $('#k-nf').textContent = (netForeign >= 0 ? '+' : '') + netForeign.toFixed(1);
+    $('#k-nf').className = netForeign >= 0 ? 'text-up' : 'text-down';
+
+    const topFlow = [...state.stocks].sort((a, b) => Math.abs(b.f) - Math.abs(a.f))[0];
+    $('#k-active').textContent = topFlow.c;
+    $('#k-active-c').textContent = (topFlow.f >= 0 ? '+' : '') + topFlow.f.toFixed(1) + ' M';
+    $('#k-active-c').className = topFlow.f >= 0 ? 'text-up' : 'text-down';
+
+    const buyCount = state.stocks.filter(s => s.sig === 'Beli').length;
+    $('#k-buy').textContent = buyCount;
+    $('#k-total').textContent = state.stocks.length;
+
+    // Filter & sort tabel
+    const q = $('#f-q').value.trim().toUpperCase();
+    const fSig = $('#f-sig').value;
+    const fFlow = $('#f-flow').value;
+
+    const filtered = state.stocks
+      .filter(s => (!q || s.c.includes(q) || s.n.toUpperCase().includes(q)))
+      .filter(s => (!fSig || s.sig === fSig))
+      .filter(s => (!fFlow || (fFlow === 'in' ? s.f > 0 : s.f < 0)))
+      .sort((a, b) => {
+        const k = state.sortKey;
+        if (typeof a[k] === 'string') return a[k].localeCompare(b[k]) * state.sortDir;
+        return (a[k] - b[k]) * state.sortDir;
+      });
+
+    $('#stockBody').innerHTML = filtered.map(s => {
+      const starred = state.watchlist.includes(s.c);
+      const pillCls = s.sig === 'Beli' ? 'pill-buy' : s.sig === 'Jual' ? 'pill-sell' : 'pill-hold';
+      return `<tr>
+        <td><button data-wl="${s.c}" aria-label="Favorit ${s.c}" style="background:none;border:none;font-size:1.1rem;color:${starred ? '#eab308' : 'var(--muted)'}">${starred ? '★' : '☆'}</button></td>
+        <td><button data-detail="${s.c}" style="background:none;border:none;font-weight:700;color:var(--teal)">${s.c}</button></td>
+        <td>${fmtNum(s.p)}</td>
+        <td class="${s.ch >= 0 ? 'text-up' : 'text-down'}">${s.ch >= 0 ? '+' : ''}${s.ch.toFixed(2)}%</td>
+        <td>${fmtNum(s.sup)}</td>
+        <td>${fmtNum(s.res)}</td>
+        <td class="${s.f >= 0 ? 'text-up' : 'text-down'}">${s.f >= 0 ? '+' : ''}${s.f.toFixed(1)}</td>
+        <td><span class="pill ${pillCls}">${s.sig}</span></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Tidak ada saham yang cocok dengan filter.</td></tr>';
+
+    // Grafik
+    drawLineChart($('#chartIHSG'), IHSG_HIST.map((_, i) => i + 1), [{ data: IHSG_HIST, color: '#0f766e', width: 2.5 }]);
+    drawBarChart($('#chartFlow'), state.stocks.map(s => s.c), state.stocks.map(s => s.f));
+  }
+
+  function renderWatchlist() {
+    const items = state.stocks.filter(s => state.watchlist.includes(s.c));
+    if (!items.length) {
+      $('#wlList').innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">Watchlist masih kosong. Tandai ikon ☆ pada tabel Dashboard untuk menambahkan saham.</div>';
+      return;
+    }
+    $('#wlList').innerHTML = items.map(s => {
+      const pillCls = s.sig === 'Beli' ? 'pill-buy' : s.sig === 'Jual' ? 'pill-sell' : 'pill-hold';
+      return `<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button data-detail="${s.c}" style="background:none;border:none;font-weight:700;font-size:1.05rem;color:var(--teal)">${s.c}</button>
+            <span class="pill ${pillCls}">${s.sig}</span>
+          </div>
+          <div style="font-size:0.8rem;color:var(--muted)">${s.n}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700">${fmtNum(s.p)}</div>
+          <div class="${s.ch >= 0 ? 'text-up' : 'text-down'}" style="font-size:0.8rem">${s.ch >= 0 ? '+' : ''}${s.ch.toFixed(2)}%</div>
+        </div>
+        <button data-wl="${s.c}" class="btn-outline" style="padding:6px 10px" aria-label="Hapus ${s.c}">Hapus</button>
+      </div>`;
+    }).join('');
+  }
+
+  function renderResearch() {
+    const list = CONTENT[state.resTab] || [];
+    $('#resList').innerHTML = list.map(item => `
+      <article class="card">
+        <span class="pill pill-hold" style="margin-bottom:8px">${item.tag}</span>
+        <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:6px">${item.t}</h3>
+        ${item.impact ? `<p style="font-size:0.8rem;font-weight:600;color:var(--teal);margin-bottom:6px">Dampak: ${item.impact}</p>` : ''}
+        <p style="font-size:0.875rem;color:var(--muted)">${item.b}</p>
+      </article>
+    `).join('');
+  }
+
+  function checkAlerts() {
+    let triggered = false;
+    state.alerts.forEach(a => {
+      if (a.done) return;
+      const st = state.stocks.find(s => s.c === a.code);
+      if (!st) return;
+      const hit = (a.dir === 'ge' && st.p >= a.price) || (a.dir === 'le' && st.p <= a.price);
+      if (hit) {
+        a.done = true;
+        triggered = true;
+        const msg = `${a.code} mencapai ${fmtNum(st.p)} (target ${a.dir === 'ge' ? '≥' : '≤'} ${fmtNum(a.price)})`;
+        state.notifs.unshift({ msg, time: new Date().toLocaleTimeString('id-ID') });
+        toast('🔔 Alert: ' + msg);
+      }
+    });
+    if (triggered) {
+      LS.set('ras_alerts', state.alerts);
+      LS.set('ras_notifs', state.notifs);
+    }
+    updateNotifBadges();
+  }
+
+  function updateNotifBadges() {
+    const count = state.notifs.length;
+    ['#notifBadgeDesktop', '#notifBadgeMobile'].forEach(sel => {
+      const el = $(sel);
+      if (!el) return;
+      el.textContent = count;
+      el.classList.toggle('hidden', count === 0);
+    });
+  }
+
+  function renderNotifications() {
+    $('#alertList').innerHTML = state.alerts.map((a, idx) => `
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+        <div>
+          <strong>${a.code}</strong> ${a.dir === 'ge' ? 'naik ke ≥' : 'turun ke ≤'} <strong>${fmtNum(a.price)}</strong>
+          <span class="pill ${a.done ? 'pill-buy' : 'pill-hold'}" style="margin-left:8px">${a.done ? 'Terpicu' : 'Aktif'}</span>
+        </div>
+        <button data-del-alert="${idx}" class="btn-outline" style="padding:4px 10px">Hapus</button>
+      </div>
+    `).join('') || '<p style="font-size:0.85rem;color:var(--muted)">Belum ada alert harga terpasang.</p>';
+
+    $('#notifList').innerHTML = state.notifs.map(n => `
+      <div class="card" style="padding:10px 14px;display:flex;justify-content:space-between;gap:12px">
+        <span>🔔 ${n.msg}</span>
+        <span style="font-size:0.75rem;color:var(--muted)">${n.time}</span>
+      </div>
+    `).join('') || '<p style="font-size:0.85rem;color:var(--muted)">Belum ada riwayat alert yang terpicu.</p>';
+  }
+
+  // 8. MODAL DETAIL SAHAM
+  function openDetail(code) {
+    const s = state.stocks.find(x => x.c === code);
+    if (!s) return;
+    state.activeDetail = code;
+    $('#d-title').textContent = `${s.c} — ${s.n}`;
+    $('#d-sub').textContent = `Harga: ${fmtNum(s.p)} (${s.ch >= 0 ? '+' : ''}${s.ch.toFixed(2)}%) · Sinyal: ${s.sig}`;
+    const starred = state.watchlist.includes(s.c);
+    $('#d-star').textContent = starred ? '★' : '☆';
+    $('#d-star').style.color = starred ? '#eab308' : 'inherit';
+
+    $('#d-stats').innerHTML = `
+      <div class="card" style="padding:10px"><div style="font-size:0.75rem;color:var(--muted)">Support</div><strong>${fmtNum(s.sup)}</strong></div>
+      <div class="card" style="padding:10px"><div style="font-size:0.75rem;color:var(--muted)">Resisten</div><strong>${fmtNum(s.res)}</strong></div>
+      <div class="card" style="padding:10px"><div style="font-size:0.75rem;color:var(--muted)">SMA10</div><strong>${fmtNum(s.lastSma)}</strong></div>
+      <div class="card" style="padding:10px"><div style="font-size:0.75rem;color:var(--muted)">RSI14</div><strong>${s.lastRsi}</strong></div>
+    `;
+    $('#d-read').textContent = `Ringkasan: Harga saat ini berada ${s.p >= s.lastSma ? 'di atas' : 'di bawah'} rata-rata SMA10 (${fmtNum(s.lastSma)}) dengan RSI14 di level ${s.lastRsi} dan aliran dana ${s.f >= 0 ? 'masuk +' : 'keluar '}${s.f.toFixed(1)} M.`;
+
+    $('#detailModal').classList.remove('hidden');
+    requestAnimationFrame(() => {
+      drawLineChart($('#chartDetail'), s.hist.map((_, i) => i + 1), [
+        { data: s.hist, color: '#0f766e', width: 2.5 },
+        { data: s.sma, color: '#f59e0b', width: 1.5 }
+      ]);
+      drawLineChart($('#chartRSI'), s.rsi.map((_, i) => i + 1), [
+        { data: s.rsi, color: '#6366f1', width: 2 }
+      ], { min: 0, max: 100, refLines: [30, 70] });
+    });
+  }
+
+  function closeDetail() {
+    $('#detailModal').classList.add('hidden');
+    state.activeDetail = null;
+  }
+
+  // 9. ROUTING & EVENT LISTENERS
+  function navigate() {
+    const hash = (location.hash || '#home').replace('#', '').split('/')[0];
+    const valid = ['home', 'dashboard', 'watchlist', 'research', 'notifications', 'legal'];
+    const target = valid.includes(hash) ? hash : 'home';
+
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + target));
+    document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === target));
+
+    if (target === 'dashboard') renderDashboard();
+    if (target === 'watchlist') renderWatchlist();
+    if (target === 'research') renderResearch();
+    if (target === 'notifications') renderNotifications();
+  }
+
+  function toggleWatchlist(code) {
+    const idx = state.watchlist.indexOf(code);
+    if (idx >= 0) {
+      state.watchlist.splice(idx, 1);
+      toast(`${code} dihapus dari watchlist`);
+    } else {
+      state.watchlist.push(code);
+      toast(`${code} ditambahkan ke watchlist`);
+    }
+    LS.set('ras_wl', state.watchlist);
+    renderDashboard();
+    renderWatchlist();
+    if (state.activeDetail === code) openDetail(code);
+  }
+
+  function simulateTick() {
+    state.stocks = state.stocks.map(s => {
+      const deltaPct = (Math.random() - 0.48) * 0.008;
+      const nextPrice = Math.max(50, Math.round(s.p * (1 + deltaPct)));
+      const nextHist = [...s.hist.slice(1), nextPrice];
+      const nextCh = Number((s.ch + deltaPct * 100).toFixed(2));
+      const nextFlow = Number((s.f + (Math.random() - 0.48) * 4).toFixed(1));
+      return enrichStock({ ...s, p: nextPrice, ch: nextCh, f: nextFlow, hist: nextHist });
+    });
+    checkAlerts();
+    if ($('#page-dashboard').classList.contains('active')) renderDashboard();
+    if ($('#page-watchlist').classList.contains('active')) renderWatchlist();
+    if ($('#page-notifications').classList.contains('active')) renderNotifications();
+    if (state.activeDetail) openDetail(state.activeDetail);
+  }
+
+  // Tema Gelap/Terang
+  function applyTheme(dark) {
+    document.documentElement.classList.toggle('dark', dark);
+    $('#themeBtn').textContent = dark ? '☀️' : '🌙';
+    LS.set('ras_dark', dark);
+    if ($('#page-dashboard').classList.contains('active')) renderDashboard();
+    if (state.activeDetail) openDetail(state.activeDetail);
+  }
+
+  // Inisialisasi
+  document.addEventListener('click', (e) => {
+    const wlBtn = e.target.closest('[data-wl]');
+    if (wlBtn) { toggleWatchlist(wlBtn.dataset.wl); return; }
+
+    const detBtn = e.target.closest('[data-detail]');
+    if (detBtn) { openDetail(detBtn.dataset.detail); return; }
+
+    const sortTh = e.target.closest('[data-sort]');
+    if (sortTh) {
+      const k = sortTh.dataset.sort;
+      if (state.sortKey === k) state.sortDir *= -1;
+      else { state.sortKey = k; state.sortDir = -1; }
+      renderDashboard();
+      return;
+    }
+
+    const rtab = e.target.closest('[data-rtab]');
+    if (rtab) {
+      state.resTab = rtab.dataset.rtab;
+      document.querySelectorAll('[data-rtab]').forEach(b => b.classList.toggle('active', b === rtab));
+      renderResearch();
+      return;
+    }
+
+    const delAlert = e.target.closest('[data-del-alert]');
+    if (delAlert) {
+      state.alerts.splice(Number(delAlert.dataset.delAlert), 1);
+      LS.set('ras_alerts', state.alerts);
+      renderNotifications();
+      toast('Alert dihapus');
+      return;
+    }
+
+    if (e.target.id === 'detailModal' || e.target.closest('#d-close')) closeDetail();
+  });
+
+  $('#d-star').addEventListener('click', () => {
+    if (state.activeDetail) toggleWatchlist(state.activeDetail);
+  });
+
+  $('#themeBtn').addEventListener('click', () => {
+    applyTheme(!document.documentElement.classList.contains('dark'));
+  });
+
+  $('#refreshBtn').addEventListener('click', () => {
+    simulateTick();
+    toast('Data pasar diperbarui');
+  });
+
+  ['#f-q', '#f-sig', '#f-flow'].forEach(sel => {
+    $(sel).addEventListener('input', renderDashboard);
+    $(sel).addEventListener('change', renderDashboard);
+  });
+
+  $('#alertForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = $('#a-code').value.trim().toUpperCase();
+    const dir = $('#a-dir').value;
+    const price = Number($('#a-price').value);
+    if (!code || !price) return;
+    state.alerts.push({ code, dir, price, done: false });
+    LS.set('ras_alerts', state.alerts);
+    $('#alertForm').reset();
+    checkAlerts();
+    renderNotifications();
+    toast(`Alert ${code} ditambahkan`);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.activeDetail) closeDetail();
+  });
+
+  window.addEventListener('hashchange', navigate);
+  window.addEventListener('resize', () => {
+    if ($('#page-dashboard').classList.contains('active')) renderDashboard();
+    if (state.activeDetail) openDetail(state.activeDetail);
+  });
+  window.addEventListener('online', () => $('#netDot').classList.add('hidden'));
+  window.addEventListener('offline', () => $('#netDot').classList.remove('hidden'));
+
+  // Populate info legal & start
+  document.querySelectorAll('.contactEmail').forEach(el => el.textContent = window.RAS_CONFIG.contactEmail);
+  document.querySelectorAll('.lastUpdated').forEach(el => el.textContent = window.RAS_CONFIG.lastUpdated);
+  if (!navigator.onLine) $('#netDot').classList.remove('hidden');
+
+  applyTheme(LS.get('ras_dark', false));
+  checkAlerts();
+  navigate();
+  setInterval(simulateTick, window.RAS_CONFIG.refreshMs);
+})();
+</script>
+</body>
+</html>

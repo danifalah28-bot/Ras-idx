@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>RAS.IDX Terminal — Riset Saham Indonesia, TradingView & Geopolitik</title>
+    <meta name="description" content="Terminal riset saham Indonesia (BEI/IDX): grafik TradingView multi-indikator, screener valuasi & aliran dana, banding saham real-time, keterbukaan OJK/BEI, dan riset geopolitik global." />
+    <meta name="theme-color" content="#060a0f" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RAS.IDX Terminal" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:title" content="RAS.IDX Terminal — Riset Saham Indonesia & Pasar Modal BEI" />
+    <meta property="og:description" content="Pantau IHSG, screener emiten BEI real-time, grafik TradingView semua indikator dalam satu layar, banding emiten, kedalaman pasar, dan riset geopolitik." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      try {
+        if (localStorage.getItem('ras_dark') !== 'false') {
+          document.documentElement.classList.add('dark');
+        }
+      } catch {}
+    </script>
+  </head>
+  <body class="bg-slate-50 text-slate-900 antialiased transition-colors duration-200 selection:bg-emerald-200 selection:text-slate-950 dark:bg-[#060a0f] dark:text-[#eaf1f7] dark:selection:bg-[#00e08a]/25 dark:selection:text-[#00e08a]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

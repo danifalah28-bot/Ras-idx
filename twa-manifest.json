@@ -1,0 +1,46 @@
+{
+  "packageId": "id.rasidx.terminal",
+  "host": "ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app",
+  "name": "RAS.IDX Terminal — Riset Saham BEI & Geopolitik",
+  "launcherName": "RAS.IDX",
+  "display": "standalone",
+  "themeColor": "#060a0f",
+  "themeColorDark": "#060a0f",
+  "navigationColor": "#060a0f",
+  "navigationColorDark": "#060a0f",
+  "navigationDividerColor": "#1d2833",
+  "navigationDividerColorDark": "#1d2833",
+  "backgroundColor": "#060a0f",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/pwa-512x512.png",
+  "maskableIconUrl": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/pwa-maskable-512x512.png",
+  "splashScreenFadeOutDuration": 250,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Screener Saham BEI",
+      "shortName": "Screener",
+      "url": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/#screener",
+      "chosenIconUrl": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/pwa-192x192.png"
+    },
+    {
+      "name": "Banding Saham",
+      "shortName": "Banding",
+      "url": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/#compare",
+      "chosenIconUrl": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/pwa-192x192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "orientation": "portrait",
+  "webManifestUrl": "https://ais-pre-44u5bfox3uoyejinxjlds7-374353743788.asia-northeast1.run.app/manifest.webmanifest"
+}
